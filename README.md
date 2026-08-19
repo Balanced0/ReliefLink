@@ -29,8 +29,26 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Prerequisites
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- [nvm](https://github.com/nvm-sh/nvm) (Node version manager)
+- MySQL installed and running locally
+- npm (comes with Node)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 1. Clone and set Node version
+
+```bash
+git clone <repo-url>
+cd relief-link
+nvm install   # installs the Node version from .nvmrc, if not already installed
+nvm use       # switches to it
+```
+
+## 2. Backend setup
+
+```bash
+cd backend
+npm install
+```
+
+Create a `.env` file in `/backend`
