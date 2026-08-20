@@ -2,13 +2,16 @@
   "name": "relief-link",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "node src/db/migration.js"
   },
   "dependencies": {
+    "mysql2": "^3.23.3",
     "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
