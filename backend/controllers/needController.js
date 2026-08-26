@@ -12,7 +12,7 @@ export async function createNeed(req, res) {
     }
 
     const [result] = await db.query(
-      `INSERT INTO needs (category, area_id, urgency, description, quantity, user_id)
+      `INSERT INTO needs (category, area_id, urgency, description, quantity, posted_by)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [
         category,

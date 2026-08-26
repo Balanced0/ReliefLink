@@ -36,6 +36,7 @@ export default function RootLayout({ children }) {
             <nav className="hidden md:flex items-center gap-6">
               <Link href="#" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">How It Works</Link>
               <Link href="#" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Browse Needs</Link>
+              <Link href="/needs/new" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Post a Need</Link>
               <Link href="/dashboard" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Dashboard</Link>
               <Link href="#" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">About</Link>
             </nav>

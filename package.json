@@ -11,6 +11,7 @@
     "migrate": "node backend/db/migration.js"
   },
   "dependencies": {
+    "lucide-react": "^1.34.0",
     "mysql2": "^3.23.3",
     "next": "16.3.1",
     "react": "19.2.8",
