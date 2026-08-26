@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { db } from "@/backend/db/index";
+import { db } from "../db/index.js";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
