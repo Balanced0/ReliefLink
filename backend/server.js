@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
+import areaRoutes from "./routes/areaRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -11,6 +12,7 @@ app.use(cors());
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/areas", areaRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
