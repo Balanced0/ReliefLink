@@ -1,0 +1,16 @@
+INSERT INTO areas (area_name, district) VALUES
+    ('Chilmari', 'Kurigram'),
+    ('Ulipur', 'Kurigram'),
+    ('Saghata', 'Gaibandha'),
+    ('Fulchhari', 'Gaibandha'),
+    ('Islampur', 'Jamalpur'),
+    ('Dewanganj', 'Jamalpur'),
+    ('Kazipur', 'Sirajganj'),
+    ('Chauhali', 'Sirajganj'),
+    ('Tahirpur', 'Sunamganj'),
+    ('Dharmapasha', 'Sunamganj'),
+    ('Companiganj', 'Sylhet'),
+    ('Gowainghat', 'Sylhet'),
+    ('Fulgazi', 'Feni'),
+    ('Begumganj', 'Noakhali'),
+    ('Char Fasson', 'Bhola');

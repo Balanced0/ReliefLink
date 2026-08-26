@@ -28,8 +28,7 @@ export async function createNeed(req, res) {
       message: "Need created successfully.",
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Could not create the need. Please try again." });
+    console.error(err);
+    res.status(500).json({ error: "Could not create the need. Please try again." });
   }
 }

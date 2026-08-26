@@ -42,6 +42,7 @@ export async function register(req, res) {
         .status(400)
         .json({ error: "That email is already registered." });
     }
+    console.error(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 }
@@ -81,6 +82,7 @@ export async function login(req, res) {
       message: "Logged in successfully.",
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 }
