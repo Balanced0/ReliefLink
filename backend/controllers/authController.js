@@ -45,3 +45,42 @@ export async function register(req, res) {
     res.status(500).json({ error: "Something went wrong. Please try again." });
   }
 }
+
+export async function login(req, res) {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ error: "Email and password are required." });
+    }
+
+    const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+    const user = rows[0];
+
+    if (!user) {
+      return res.status(401).json({ error: "Incorrect email or password." });
+    }
+
+    const passwordMatches = await bcrypt.compare(password, user.password_hash);
+    if (!passwordMatches) {
+      return res.status(401).json({ error: "Incorrect email or password." });
+    }
+
+    const token = jwt.sign(
+      { user_id: user.user_id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" },
+    );
+
+    res.cookie("token", token, COOKIE_OPTIONS);
+    res.status(200).json({
+      message: "Logged in successfully.",
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Something went wrong. Please try again." });
+  }
+}
