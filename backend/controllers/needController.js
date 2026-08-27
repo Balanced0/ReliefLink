@@ -21,7 +21,7 @@ export async function createNeed(req, res) {
 
     const [result] = await db.query(
       `INSERT INTO needs (area_id, urgency, description, quantity, posted_by)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, ?, ?)`,
       [
         area_id,
         urgency || "medium",

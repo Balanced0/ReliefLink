@@ -44,7 +44,7 @@ const URGENCIES = [
 ];
 
 export default function PostNeedPage() {
-  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState([]);
   const [areaId, setAreaId] = useState("");
   const [urgency, setUrgency] = useState("");
   const [description, setDescription] = useState("");
@@ -83,8 +83,8 @@ export default function PostNeedPage() {
     setError("");
     setSuccess(false);
 
-    if (!category) {
-      setError("Please select a category.");
+    if (categories.length === 0) {
+      setError("Please select at least one category.");
       return;
     }
     if (!urgency) {
@@ -103,7 +103,7 @@ export default function PostNeedPage() {
     setLoading(true);
     try {
       const body = {
-        category,
+        categories,
         area_id: Number(areaId),
         urgency,
         description: description.trim(),
@@ -114,7 +114,7 @@ export default function PostNeedPage() {
 
       await apiPost("/needs", body);
       setSuccess(true);
-      setCategory("");
+      setCategories([]);
       setAreaId("");
       setUrgency("");
       setDescription("");
@@ -152,32 +152,49 @@ export default function PostNeedPage() {
 
           <form onSubmit={handleSubmit}>
             <div className="mb-6">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Category <span className="text-red-500">*</span>
+              <p className="text-sm font-medium text-gray-700 mb-1">
+                Categories <span className="text-red-500">*</span>
               </p>
+              <p className="text-xs text-gray-400 mb-3">Pick any number — select all that apply</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {CATEGORIES.map(({ value, label, Icon }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => setCategory(value)}
-                    style={{ height: "106px" }}
-                    className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-900 ${
-                      category === value
-                        ? "border-2 border-blue-900 bg-blue-50 text-blue-900"
-                        : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                    }`}
-                  >
-                    <Icon size={28} />
-                    <span
-                      className={`text-xs font-medium text-center leading-tight ${
-                        category === value ? "text-blue-900" : "text-gray-700"
+                {CATEGORIES.map(({ value, label, Icon }) => {
+                  const selected = categories.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() =>
+                        setCategories((prev) =>
+                          prev.includes(value)
+                            ? prev.filter((c) => c !== value)
+                            : [...prev, value]
+                        )
+                      }
+                      style={{ height: "106px" }}
+                      className={`relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-blue-900 ${
+                        selected
+                          ? "border-2 border-blue-900 bg-blue-50 text-blue-900"
+                          : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
                       }`}
                     >
-                      {label}
-                    </span>
-                  </button>
-                ))}
+                      {selected && (
+                        <span className="absolute top-2 right-2 w-4 h-4 bg-blue-900 rounded-full flex items-center justify-center">
+                          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+                            <path d="M1.5 4L3.5 6L6.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </span>
+                      )}
+                      <Icon size={28} />
+                      <span
+                        className={`text-xs font-medium text-center leading-tight ${
+                          selected ? "text-blue-900" : "text-gray-700"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
