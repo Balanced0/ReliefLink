@@ -51,6 +51,56 @@ export async function createNeed(req, res) {
   }
 }
 
+export async function getNeeds(req, res) {
+  try {
+    const { status, urgency, area_id, category } = req.query;
+
+    let sql = `
+      SELECT needs.*, areas.area_name, users.name AS poster_name
+      FROM needs
+      JOIN areas ON needs.area_id = areas.area_id
+      JOIN users ON needs.posted_by = users.user_id
+      WHERE needs.is_hidden = FALSE
+    `;
+    const params = [];
+
+    if (status) {
+      sql += " AND needs.status = ?";
+      params.push(status);
+    }
+    if (urgency) {
+      sql += " AND needs.urgency = ?";
+      params.push(urgency);
+    }
+    if (area_id) {
+      sql += " AND needs.area_id = ?";
+      params.push(area_id);
+    }
+
+    sql += " ORDER BY needs.created_at DESC";
+
+    const [needs] = await db.query(sql, params);
+
+    const [categoryRows] = await db.query("SELECT * FROM need_categories");
+
+    for (const need of needs) {
+      need.categories = categoryRows
+        .filter((row) => row.need_id === need.need_id)
+        .map((row) => row.category);
+    }
+
+    let result = needs;
+    if (category) {
+      result = needs.filter((need) => need.categories.includes(category));
+    }
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not load needs." });
+  }
+}
+
 export async function getNeedById(req, res) {
   try {
     const [needs] = await db.query(
