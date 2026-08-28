@@ -50,3 +50,33 @@ export async function createNeed(req, res) {
       .json({ error: "Could not create the need. Please try again." });
   }
 }
+
+export async function getNeedById(req, res) {
+  try {
+    const [needs] = await db.query(
+      `SELECT needs.*, areas.area_name, users.name AS poster_name
+       FROM needs
+       JOIN areas ON needs.area_id = areas.area_id
+       JOIN users ON needs.posted_by = users.user_id
+       WHERE needs.need_id = ?`,
+      [req.params.id],
+    );
+
+    if (needs.length === 0) {
+      return res.status(404).json({ error: "Need not found." });
+    }
+
+    const [categoryRows] = await db.query(
+      "SELECT category FROM need_categories WHERE need_id = ?",
+      [req.params.id],
+    );
+
+    const need = needs[0];
+    need.categories = categoryRows.map((row) => row.category);
+
+    res.json(need);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not load this need." });
+  }
+}
