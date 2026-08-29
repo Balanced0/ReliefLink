@@ -13,14 +13,14 @@ export async function claimNeed(req, res) {
       return res.status(400).json({ error: "This need has already been claimed." });
     }
 
-    await db.query(
+    const [result] = await db.query(
       "INSERT INTO claims (need_id, volunteer_id) VALUES (?, ?)",
       [need_id, req.user.user_id]
     );
 
     await db.query("UPDATE needs SET status = 'claimed' WHERE need_id = ?", [need_id]);
 
-    res.status(201).json({ message: "Need claimed successfully." });
+    res.status(201).json({ message: "Need claimed successfully.", claim_id: result.insertId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Could not claim this need. Please try again." });
