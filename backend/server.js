@@ -8,6 +8,8 @@ import needRoutes from "./routes/needRoutes.js";
 import claimRoutes from "./routes/claimRoutes.js";
 import areaRoutes from "./routes/areaRoutes.js";
 import bookmarkRoutes from "./routes/bookmarkRoutes.js";
+import organizationRoutes from "./routes/organizationRoutes.js";
+
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -27,6 +29,8 @@ app.use("/api/needs", needRoutes);
 app.use("/api/claims", claimRoutes);
 app.use("/api/areas", areaRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
+app.use("/api/organizations", organizationRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
