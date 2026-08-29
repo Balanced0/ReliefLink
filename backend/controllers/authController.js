@@ -78,9 +78,7 @@ export async function login(req, res) {
     );
 
     res.cookie("token", token, COOKIE_OPTIONS);
-    res.status(200).json({
-      message: "Logged in successfully.",
-    });
+    res.json({ user_id: user.user_id, name: user.name, email: user.email, role: user.role });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Something went wrong. Please try again." });
@@ -90,4 +88,8 @@ export async function login(req, res) {
 export function logout(req, res) {
   res.clearCookie("token");
   res.json({ message: "Logged out." });
+}
+
+export function getMe(req, res) {
+  res.json(req.user);
 }
