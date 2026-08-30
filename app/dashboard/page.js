@@ -5,37 +5,39 @@ import {
   Droplet, Pill, Home, LifeBuoy, Package,
   RefreshCw, Filter, ChevronDown, X,
   AlertTriangle, Users, CheckCheck, Inbox,
+  PlusCircle, MapPin, Layers, Clock, Activity, ShieldCheck
 } from "lucide-react";
+import Link from "next/link";
 import NeedDetailModal from "../../components/NeedDetailModal";
 
 /* ─── shared lookup tables ────────────────────────────────────── */
 const CATEGORY_META = {
-  food:     { Icon: Droplet,  label: "Food & Water" },
-  medicine: { Icon: Pill,     label: "Medicine" },
-  shelter:  { Icon: Home,     label: "Shelter" },
-  rescue:   { Icon: LifeBuoy, label: "Rescue" },
-  other:    { Icon: Package,  label: "Other" },
+  food:     { Icon: Droplet,  label: "Food & Water",        bg: "bg-blue-50 text-blue-700 border-blue-200" },
+  medicine: { Icon: Pill,     label: "Medicine",            bg: "bg-rose-50 text-rose-700 border-rose-200" },
+  shelter:  { Icon: Home,     label: "Shelter",             bg: "bg-amber-50 text-amber-700 border-amber-200" },
+  rescue:   { Icon: LifeBuoy, label: "Rescue",              bg: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  other:    { Icon: Package,  label: "Other",               bg: "bg-purple-50 text-purple-700 border-purple-200" },
 };
 
 const URGENCY_META = {
   critical: {
     dot: "bg-red-500", text: "text-red-700",
-    border: "border-l-red-500", badge: "bg-red-50 text-red-700 ring-1 ring-red-200",
+    border: "border-l-red-500", badge: "bg-red-50 text-red-700 border border-red-200 font-bold",
     label: "Critical",
   },
   high: {
     dot: "bg-orange-500", text: "text-orange-700",
-    border: "border-l-orange-500", badge: "bg-orange-50 text-orange-700 ring-1 ring-orange-200",
+    border: "border-l-orange-500", badge: "bg-orange-50 text-orange-700 border border-orange-200 font-bold",
     label: "High",
   },
   medium: {
     dot: "bg-blue-500", text: "text-blue-700",
-    border: "border-l-blue-500", badge: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
+    border: "border-l-blue-500", badge: "bg-blue-50 text-blue-700 border border-blue-200 font-bold",
     label: "Medium",
   },
   low: {
-    dot: "bg-gray-400", text: "text-gray-500",
-    border: "border-l-gray-300", badge: "bg-gray-100 text-gray-600 ring-1 ring-gray-200",
+    dot: "bg-slate-400", text: "text-slate-500",
+    border: "border-l-slate-300", badge: "bg-slate-100 text-slate-600 border border-slate-200",
     label: "Low",
   },
 };
@@ -47,52 +49,52 @@ function NeedCard({ need, onClick }) {
   return (
     <button
       onClick={() => onClick(need)}
-      className={`w-full text-left bg-white rounded-xl border-l-4 ${u.border} border border-gray-100 shadow-sm hover:shadow-md hover:translate-y-[-1px] transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-1 group`}
+      className={`w-full text-left bg-white rounded-2xl border-l-4 ${u.border} border border-slate-200/80 shadow-xs hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-1 group p-4`}
     >
-      {/* Card body */}
-      <div className="p-4">
-        {/* Top row: categories + urgency badge */}
-        <div className="flex items-start justify-between gap-2 mb-3">
-          <div className="flex flex-wrap gap-1.5">
-            {(need.categories || []).map((cat) => {
-              const meta = CATEGORY_META[cat];
-              if (!meta) return null;
-              const { Icon, label } = meta;
-              return (
-                <span
-                  key={cat}
-                  title={label}
-                  className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 text-[11px] font-medium px-2 py-0.5 rounded-md"
-                >
-                  <Icon size={11} />
-                  {label}
-                </span>
-              );
-            })}
-          </div>
-          <span className={`shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-md ${u.badge}`}>
-            {u.label}
-          </span>
-        </div>
-
-        {/* Description */}
-        <p className="text-[13px] text-gray-800 leading-snug line-clamp-2 mb-3 group-hover:text-gray-900 transition-colors">
-          {need.description}
-        </p>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between text-[11px] text-gray-400">
-          <span className="flex items-center gap-1 truncate max-w-[55%]">
-            <span className="font-medium text-gray-600 truncate">{need.area_name || `Area ${need.area_id}`}</span>
-          </span>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {need.quantity && (
-              <span className="bg-gray-50 border border-gray-100 rounded px-1.5 py-0.5 text-[11px] text-gray-500 truncate max-w-[80px]">
-                {need.quantity}
+      {/* Top row: categories + urgency badge */}
+      <div className="flex items-start justify-between gap-2 mb-2.5">
+        <div className="flex flex-wrap gap-1">
+          {(need.categories || []).map((cat) => {
+            const meta = CATEGORY_META[cat];
+            if (!meta) return null;
+            const { Icon, label, bg } = meta;
+            return (
+              <span
+                key={cat}
+                title={label}
+                className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-lg border ${bg}`}
+              >
+                <Icon size={11} />
+                {label}
               </span>
-            )}
-            <span className="text-gray-400 truncate max-w-[60px]">{need.poster_name || "Anon"}</span>
-          </div>
+            );
+          })}
+        </div>
+        <span className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${u.badge}`}>
+          {u.label}
+        </span>
+      </div>
+
+      {/* Description */}
+      <p className="text-sm font-medium text-slate-800 leading-snug line-clamp-2 mb-3 group-hover:text-slate-950 transition-colors">
+        {need.description}
+      </p>
+
+      {/* Footer metadata */}
+      <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-100">
+        <span className="flex items-center gap-1 truncate max-w-[55%] font-medium text-slate-600">
+          <MapPin size={12} className="text-slate-400 shrink-0" />
+          <span className="truncate">{need.area_name || `Area ${need.area_id}`}</span>
+        </span>
+        <div className="flex items-center gap-1.5 shrink-0">
+          {need.quantity && (
+            <span className="bg-slate-100 border border-slate-200 rounded-md px-1.5 py-0.5 text-[11px] font-semibold text-slate-600 truncate max-w-[90px]">
+              {need.quantity}
+            </span>
+          )}
+          <span className="text-slate-400 truncate max-w-[70px] text-[11px]">
+            {need.poster_name || "Anonymous"}
+          </span>
         </div>
       </div>
     </button>
@@ -102,10 +104,10 @@ function NeedCard({ need, onClick }) {
 /* ─── EmptyState ──────────────────────────────────────────────── */
 function EmptyState({ label }) {
   return (
-    <div className="flex flex-col items-center justify-center py-14 text-center">
-      <Inbox size={32} className="text-gray-300 mb-3" />
-      <p className="text-sm font-medium text-gray-400">No {label.toLowerCase()} needs</p>
-      <p className="text-xs text-gray-300 mt-1">Check back soon</p>
+    <div className="flex flex-col items-center justify-center py-16 text-center bg-white/60 rounded-2xl border border-dashed border-slate-200">
+      <Inbox size={32} className="text-slate-300 mb-2" />
+      <p className="text-sm font-semibold text-slate-500">No {label.toLowerCase()} needs found</p>
+      <p className="text-xs text-slate-400 mt-0.5">Adjust your filters or check back shortly</p>
     </div>
   );
 }
@@ -114,10 +116,10 @@ function EmptyState({ label }) {
 function ColumnSkeleton() {
   return (
     <div className="flex flex-col gap-3">
-      {[100, 80, 120].map((h, i) => (
+      {[110, 95, 125].map((h, i) => (
         <div
           key={i}
-          className="rounded-xl bg-gray-100 animate-pulse border-l-4 border-l-gray-200"
+          className="rounded-2xl bg-slate-200/70 animate-pulse border-l-4 border-l-slate-300"
           style={{ height: `${h}px` }}
         />
       ))}
@@ -127,9 +129,27 @@ function ColumnSkeleton() {
 
 /* ─── StatusColumn ────────────────────────────────────────────── */
 const COLUMN_STYLES = {
-  open:      { icon: AlertTriangle, ring: "ring-blue-200",   icon_color: "text-blue-500",   label_color: "text-blue-800",   count_bg: "bg-blue-600",   tab_active: "border-blue-600 text-blue-700 bg-blue-50" },
-  claimed:   { icon: Users,         ring: "ring-orange-200", icon_color: "text-orange-500", label_color: "text-orange-800", count_bg: "bg-orange-500", tab_active: "border-orange-500 text-orange-700 bg-orange-50" },
-  fulfilled: { icon: CheckCheck,    ring: "ring-green-200",  icon_color: "text-green-500",  label_color: "text-green-800",  count_bg: "bg-green-600",  tab_active: "border-green-600 text-green-700 bg-green-50" },
+  open: {
+    icon: AlertTriangle,
+    headerBg: "bg-blue-50 border-blue-200 text-blue-900",
+    icon_color: "text-blue-600",
+    badge_bg: "bg-blue-600 text-white",
+    tab_active: "border-blue-600 text-blue-700 bg-blue-50"
+  },
+  claimed: {
+    icon: Users,
+    headerBg: "bg-amber-50 border-amber-200 text-amber-900",
+    icon_color: "text-amber-600",
+    badge_bg: "bg-amber-600 text-white",
+    tab_active: "border-amber-500 text-amber-700 bg-amber-50"
+  },
+  fulfilled: {
+    icon: CheckCheck,
+    headerBg: "bg-emerald-50 border-emerald-200 text-emerald-900",
+    icon_color: "text-emerald-600",
+    badge_bg: "bg-emerald-600 text-white",
+    tab_active: "border-emerald-600 text-emerald-700 bg-emerald-50"
+  },
 };
 
 function StatusColumn({ statusKey, label, needs, onCardClick }) {
@@ -138,45 +158,44 @@ function StatusColumn({ statusKey, label, needs, onCardClick }) {
 
   return (
     <div className="flex flex-col min-w-0">
-      {/* Column header */}
-      <div className={`flex items-center justify-between mb-4 pb-3 border-b border-gray-100`}>
+      <div className={`flex items-center justify-between px-4 py-3 rounded-2xl border mb-4 shadow-xs ${s.headerBg}`}>
         <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg bg-white ring-1 ${s.ring} shadow-xs`}>
-            <Icon size={14} className={s.icon_color} />
-          </div>
-          <span className={`text-sm font-bold ${s.label_color}`}>{label}</span>
+          <Icon size={16} className={s.icon_color} />
+          <span className="font-bold text-sm tracking-tight">{label} Needs</span>
         </div>
-        <span className={`text-white text-xs font-bold px-2 py-0.5 rounded-full ${s.count_bg}`}>
+        <span className={`text-xs font-black px-2.5 py-0.5 rounded-full ${s.badge_bg}`}>
           {needs.length}
         </span>
       </div>
 
-      {/* Cards */}
-      <div className="flex flex-col gap-3">
-        {needs.length === 0
-          ? <EmptyState label={label} />
-          : needs.map((n) => <NeedCard key={n.need_id} need={n} onClick={onCardClick} />)
-        }
+      <div className="flex flex-col gap-3 min-h-[200px]">
+        {needs.length === 0 ? (
+          <EmptyState label={label} />
+        ) : (
+          needs.map((need) => (
+            <NeedCard key={need.need_id} need={need} onClick={onCardClick} />
+          ))
+        )}
       </div>
     </div>
   );
 }
 
-/* ─── Main page ───────────────────────────────────────────────── */
+/* ─── Main Dashboard Page ─────────────────────────────────────── */
 export default function DashboardPage() {
-  const [needs, setNeeds]           = useState([]);
-  const [areas, setAreas]           = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [activeTab, setActiveTab]   = useState("open");   // mobile tab
+  const [needs, setNeeds] = useState([]);
+  const [areas, setAreas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [filterStatus,   setFilterStatus]   = useState("");
-  const [filterUrgency,  setFilterUrgency]  = useState("");
+  const [filterStatus, setFilterStatus]     = useState("");
+  const [filterUrgency, setFilterUrgency]   = useState("");
   const [filterCategory, setFilterCategory] = useState("");
-  const [filterAreaId,   setFilterAreaId]   = useState("");
+  const [filterAreaId, setFilterAreaId]     = useState("");
 
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedNeed, setSelectedNeed] = useState(null);
+  const [activeTab, setActiveTab] = useState("open");
 
   const fetchNeeds = useCallback(async () => {
     setLoading(true);
@@ -187,6 +206,7 @@ export default function DashboardPage() {
       if (filterUrgency)  params.set("urgency",  filterUrgency);
       if (filterCategory) params.set("category", filterCategory);
       if (filterAreaId)   params.set("area_id",  filterAreaId);
+
       const q = params.toString() ? `?${params}` : "";
       const res  = await fetch(`http://localhost:5000/api/needs${q}`, { credentials: "include" });
       const data = await res.json().catch(() => []);
@@ -213,8 +233,7 @@ export default function DashboardPage() {
   const fulfilledNeeds = needs.filter((n) => n.status === "fulfilled");
 
   const hasFilters = filterStatus || filterUrgency || filterCategory || filterAreaId;
-
-  const selectCls = "w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent transition-all appearance-none";
+  const selectCls = "w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 transition-all appearance-none";
 
   const tabs = [
     { key: "open",      label: "Open",      count: openNeeds.length,      ...COLUMN_STYLES.open },
@@ -225,41 +244,63 @@ export default function DashboardPage() {
   const columnNeeds = { open: openNeeds, claimed: claimedNeeds, fulfilled: fulfilledNeeds };
 
   return (
-    <div className="flex flex-col flex-1 min-h-screen bg-gray-50">
-
+    <div className="flex flex-col flex-1 min-h-screen bg-slate-50 mesh-bg">
       {/* ── Hero header ───────────────────────────────────────── */}
-      <div className="bg-blue-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-white border-b border-slate-800 relative overflow-hidden">
+        {/* Glow accent */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <p className="text-blue-300 text-xs font-semibold uppercase tracking-widest mb-1">Live Overview</p>
-              <h1 className="text-2xl sm:text-3xl font-bold">Needs Dashboard</h1>
-              <p className="text-blue-200 text-sm mt-1">Real-time community relief coordination</p>
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Live Coordination Radar</span>
+              </div>
+              <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
+                Disaster Needs Dashboard
+              </h1>
+              <p className="text-slate-300 text-sm mt-1 max-w-xl">
+                Real-time situational feed of incoming requests, active volunteer responses, and verified supply deliveries.
+              </p>
             </div>
 
-            <button
-              onClick={fetchNeeds}
-              disabled={loading}
-              className="flex items-center gap-2 self-start sm:self-auto text-sm font-medium text-white border border-white/30 hover:border-white/60 hover:bg-white/10 rounded-xl px-4 py-2 transition-all disabled:opacity-50"
-            >
-              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
-              Refresh
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/needs/new"
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95"
+              >
+                <PlusCircle size={15} />
+                <span>Post a Need</span>
+              </Link>
+              <button
+                onClick={fetchNeeds}
+                disabled={loading}
+                className="flex items-center gap-2 text-xs font-bold text-white bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl px-4 py-2.5 transition-all disabled:opacity-50"
+              >
+                <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                <span>Refresh</span>
+              </button>
+            </div>
           </div>
 
           {/* Stat pills */}
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-8 grid grid-cols-3 gap-3 max-w-2xl">
             {[
-              { label: "Open",      count: openNeeds.length,      bg: "bg-blue-800 ring-blue-700",    dot: "bg-blue-400"  },
-              { label: "Claimed",   count: claimedNeeds.length,   bg: "bg-orange-900/60 ring-orange-700", dot: "bg-orange-400" },
-              { label: "Fulfilled", count: fulfilledNeeds.length, bg: "bg-green-900/60 ring-green-700",   dot: "bg-green-400" },
+              { label: "Open Requests",      count: openNeeds.length,      bg: "bg-blue-950/70 border-blue-800/80 text-blue-300",    dot: "bg-blue-400"  },
+              { label: "Claimed Missions",   count: claimedNeeds.length,   bg: "bg-amber-950/70 border-amber-800/80 text-amber-300", dot: "bg-amber-400" },
+              { label: "Fulfilled Aid",      count: fulfilledNeeds.length, bg: "bg-emerald-950/70 border-emerald-800/80 text-emerald-300", dot: "bg-emerald-400" },
             ].map(({ label, count, bg, dot }) => (
-              <div key={label} className={`flex items-center gap-2.5 ${bg} ring-1 rounded-2xl px-4 py-2`}>
-                <span className={`w-2 h-2 rounded-full ${dot}`} />
-                <span className="text-white text-sm">
-                  <span className="font-bold text-lg leading-none mr-1">{loading ? "—" : count}</span>
-                  {label}
-                </span>
+              <div key={label} className={`flex items-center gap-3 ${bg} border rounded-2xl px-4 py-3 shadow-xs`}>
+                <span className={`w-2.5 h-2.5 rounded-full ${dot} shrink-0`} />
+                <div className="min-w-0">
+                  <div className="text-xl font-black text-white leading-none">
+                    {loading ? "—" : count}
+                  </div>
+                  <div className="text-[11px] font-medium text-slate-300 mt-0.5 truncate">
+                    {label}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -267,38 +308,36 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Filters bar ───────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 shadow-xs sticky top-16 z-30">
+      <div className="bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Filter toggle row */}
-          <div className="flex items-center justify-between h-12">
+          <div className="flex items-center justify-between h-13">
             <button
               onClick={() => setShowFilters((p) => !p)}
-              className={`flex items-center gap-2 text-sm font-medium transition-colors ${showFilters ? "text-blue-900" : "text-gray-600 hover:text-gray-900"}`}
+              className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${showFilters ? "text-emerald-700" : "text-slate-700 hover:text-slate-950"}`}
             >
-              <Filter size={15} />
-              Filters
+              <Filter size={14} />
+              <span>Filter Feed</span>
               {hasFilters && (
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-blue-900 text-white text-[10px] font-bold">
+                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-900 text-white text-[10px] font-bold">
                   {[filterStatus, filterUrgency, filterCategory, filterAreaId].filter(Boolean).length}
                 </span>
               )}
-              <ChevronDown size={14} className={`transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`} />
+              <ChevronDown size={13} className={`transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`} />
             </button>
 
             {hasFilters && (
               <button
                 onClick={() => { setFilterStatus(""); setFilterUrgency(""); setFilterCategory(""); setFilterAreaId(""); }}
-                className="flex items-center gap-1 text-xs text-gray-400 hover:text-red-600 transition-colors"
+                className="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors"
               >
-                <X size={12} /> Clear all
+                <X size={12} /> Clear all filters
               </button>
             )}
           </div>
 
           {/* Expandable filter panel */}
           {showFilters && (
-            <div className="pb-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {/* Status */}
+            <div className="pb-4 pt-1 grid grid-cols-2 sm:grid-cols-4 gap-3 border-t border-slate-100">
               <div className="relative">
                 <select id="filter-status" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className={selectCls}>
                   <option value="">All Statuses</option>
@@ -306,20 +345,18 @@ export default function DashboardPage() {
                   <option value="claimed">Claimed</option>
                   <option value="fulfilled">Fulfilled</option>
                 </select>
-                <ChevronDown size={13} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <ChevronDown size={13} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
-              {/* Urgency */}
               <div className="relative">
                 <select id="filter-urgency" value={filterUrgency} onChange={(e) => setFilterUrgency(e.target.value)} className={selectCls}>
                   <option value="">All Urgencies</option>
-                  <option value="critical">Critical</option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
+                  <option value="critical">Critical Urgency</option>
+                  <option value="high">High Urgency</option>
+                  <option value="medium">Medium Urgency</option>
+                  <option value="low">Low Urgency</option>
                 </select>
-                <ChevronDown size={13} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <ChevronDown size={13} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
-              {/* Category */}
               <div className="relative">
                 <select id="filter-category" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className={selectCls}>
                   <option value="">All Categories</option>
@@ -327,21 +364,20 @@ export default function DashboardPage() {
                   <option value="medicine">Medicine &amp; First Aid</option>
                   <option value="shelter">Shelter &amp; Clothing</option>
                   <option value="rescue">Rescue &amp; Evac</option>
-                  <option value="other">Other</option>
+                  <option value="other">Other Essentials</option>
                 </select>
-                <ChevronDown size={13} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <ChevronDown size={13} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
-              {/* Area */}
               <div className="relative">
                 <select id="filter-area" value={filterAreaId} onChange={(e) => setFilterAreaId(e.target.value)} className={selectCls}>
-                  <option value="">All Areas</option>
+                  <option value="">All Designated Zones</option>
                   {areas.map((a) => (
                     <option key={a.area_id} value={a.area_id}>
-                      {a.area_name}{a.district ? ` — ${a.district}` : ""}
+                      {a.area_name}{a.district ? ` — (${a.district})` : ""}
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={13} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <ChevronDown size={13} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
               </div>
             </div>
           )}
@@ -349,28 +385,28 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Content ───────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 flex-1">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex-1">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-xl text-sm">
-            {error}
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-sm flex items-center gap-2">
+            <AlertTriangle size={16} />
+            <span>{error}</span>
           </div>
         )}
 
         {/* ── Mobile: tab switcher ─────────────────────────────── */}
         <div className="md:hidden">
-          {/* Tabs */}
-          <div className="flex bg-white rounded-2xl p-1 shadow-sm border border-gray-100 mb-5">
+          <div className="flex bg-white rounded-2xl p-1 shadow-xs border border-slate-200/80 mb-5">
             {tabs.map((t) => (
               <button
                 key={t.key}
                 onClick={() => setActiveTab(t.key)}
-                className={`flex-1 flex flex-col items-center py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`flex-1 flex flex-col items-center py-2.5 rounded-xl text-xs font-bold transition-all ${
                   activeTab === t.key
-                    ? t.tab_active + " border"
-                    : "text-gray-500 hover:text-gray-800"
+                    ? t.tab_active + " border shadow-xs"
+                    : "text-slate-500 hover:text-slate-800"
                 }`}
               >
-                <span className="text-lg font-bold leading-none mb-0.5">
+                <span className="text-base font-black leading-none mb-0.5">
                   {loading ? "—" : columnNeeds[t.key].length}
                 </span>
                 {t.label}
@@ -378,7 +414,6 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Active column */}
           {loading ? (
             <ColumnSkeleton />
           ) : (
@@ -396,13 +431,7 @@ export default function DashboardPage() {
           {loading ? (
             [0, 1, 2].map((i) => (
               <div key={i}>
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gray-200 animate-pulse" />
-                    <div className="h-4 w-16 rounded bg-gray-200 animate-pulse" />
-                  </div>
-                  <div className="h-5 w-6 rounded-full bg-gray-200 animate-pulse" />
-                </div>
+                <div className="h-12 rounded-2xl bg-slate-200/70 animate-pulse mb-4" />
                 <ColumnSkeleton />
               </div>
             ))

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ShieldCheck, LogIn, ArrowRight, AlertCircle, Loader2 } from "lucide-react";
 import { apiPost } from "../../lib/api";
 
 export default function LoginPage() {
@@ -36,35 +37,41 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center min-h-[85vh] bg-slate-50 px-4 py-12">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md border border-slate-100 p-8">
-        <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center gap-2 mb-2">
-            <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
-            </svg>
-            <span className="text-2xl font-bold tracking-tight text-slate-900">ReliefLink</span>
-          </div>
-          <h2 className="text-xl font-semibold text-slate-700">Log in to your account</h2>
-          <p className="text-sm text-slate-500 mt-1">Welcome back to ReliefLink</p>
+    <div className="flex flex-col flex-1 items-center justify-center min-h-[85vh] bg-slate-50 mesh-bg px-4 py-12">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-8 sm:p-10 relative overflow-hidden">
+        {/* Decorative subtle header glow */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex flex-col items-center text-center mb-8">
+          <Link href="/" className="flex items-center gap-2 mb-4 group">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+              <ShieldCheck className="w-6 h-6 text-white" strokeWidth={2.5} />
+            </div>
+            <span className="text-xl font-black tracking-tight text-slate-950">
+              Relief<span className="text-emerald-600">Link</span>
+            </span>
+          </Link>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome Back</h2>
+          <p className="text-sm text-slate-500 mt-1">Sign in to coordinate disaster relief missions</p>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md text-sm">
-            {error}
+          <div className="mb-6 p-4 bg-red-50/90 border border-red-200 text-red-700 rounded-2xl text-sm flex items-start gap-2.5">
+            <AlertCircle size={17} className="text-red-500 shrink-0 mt-0.5" />
+            <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="email">
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" htmlFor="email">
               Email Address
             </label>
             <input
               id="email"
               type="email"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:bg-white transition-all text-sm"
-              placeholder="you@example.com"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 focus:bg-white transition-all text-sm"
+              placeholder="you@organization.org"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
@@ -74,14 +81,14 @@ export default function LoginPage() {
 
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="block text-sm font-medium text-slate-700" htmlFor="password">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider" htmlFor="password">
                 Password
               </label>
             </div>
             <input
               id="password"
               type="password"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-800 focus:bg-white transition-all text-sm"
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 focus:bg-white transition-all text-sm"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -93,17 +100,21 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50 text-sm mt-2"
+            className="w-full py-3.5 px-4 bg-slate-950 hover:bg-slate-800 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50 text-sm mt-2 flex items-center justify-center gap-2 active:scale-[0.98]"
           >
-            {loading ? "Logging in..." : "Log In"}
+            {loading ? (
+              <><Loader2 size={16} className="animate-spin text-slate-400" /> Signing in…</>
+            ) : (
+              <><LogIn size={16} /> Sign In</>
+            )}
           </button>
         </form>
 
-        <div className="text-center mt-6">
-          <p className="text-sm text-slate-600">
+        <div className="text-center mt-6 pt-6 border-t border-slate-100">
+          <p className="text-sm text-slate-500">
             Don't have an account?{" "}
-            <Link href="/signup" className="font-semibold text-slate-900 hover:underline">
-              Sign up
+            <Link href="/signup" className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline">
+              Create an account
             </Link>
           </p>
         </div>

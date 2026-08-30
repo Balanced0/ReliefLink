@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Plus, UserPlus, Building2, ChevronRight, Loader2 } from "lucide-react";
+import {
+  Users, Plus, UserPlus, Building2, ChevronRight, Loader2,
+  ClipboardList, Check, XCircle
+} from "lucide-react";
 
 export default function OrganizationsPage() {
   const [orgs, setOrgs] = useState([]);
@@ -16,6 +19,8 @@ export default function OrganizationsPage() {
   const [createSuccess, setCreateSuccess] = useState("");
 
   const [joinState, setJoinState] = useState({});
+
+  const [pendingState, setPendingState] = useState({});
 
   async function fetchOrgs() {
     setLoadingOrgs(true);
@@ -100,6 +105,93 @@ export default function OrganizationsPage() {
       setJoinState((prev) => ({
         ...prev,
         [orgId]: { loading: false, msg: "", error: "Could not reach the server." },
+      }));
+    }
+  }
+
+  async function fetchPending(orgId) {
+    setPendingState((prev) => ({
+      ...prev,
+      [orgId]: { ...prev[orgId], open: true, loading: true, error: "", requests: prev[orgId]?.requests || [] },
+    }));
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/organizations/${orgId}/members?status=pending`,
+        { credentials: "include" }
+      );
+      const data = await res.json().catch(() => []);
+      if (!res.ok) {
+        setPendingState((prev) => ({
+          ...prev,
+          [orgId]: { ...prev[orgId], loading: false, error: data.error || "Could not load requests." },
+        }));
+        return;
+      }
+      setPendingState((prev) => ({
+        ...prev,
+        [orgId]: { ...prev[orgId], loading: false, requests: Array.isArray(data) ? data : [], actionState: {} },
+      }));
+    } catch {
+      setPendingState((prev) => ({
+        ...prev,
+        [orgId]: { ...prev[orgId], loading: false, error: "Could not reach the server." },
+      }));
+    }
+  }
+
+  function togglePending(orgId) {
+    const current = pendingState[orgId];
+    if (current?.open) {
+      setPendingState((prev) => ({ ...prev, [orgId]: { ...prev[orgId], open: false } }));
+    } else {
+      fetchPending(orgId);
+    }
+  }
+
+  async function handleApprove(orgId, userId, status) {
+    setPendingState((prev) => ({
+      ...prev,
+      [orgId]: {
+        ...prev[orgId],
+        actionState: { ...prev[orgId]?.actionState, [userId]: { loading: true, error: "" } },
+      },
+    }));
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/organizations/${orgId}/members/${userId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ status }),
+        }
+      );
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setPendingState((prev) => ({
+          ...prev,
+          [orgId]: {
+            ...prev[orgId],
+            actionState: { ...prev[orgId]?.actionState, [userId]: { loading: false, error: data.error || "Action failed." } },
+          },
+        }));
+      } else {
+        setPendingState((prev) => ({
+          ...prev,
+          [orgId]: {
+            ...prev[orgId],
+            actionState: { ...prev[orgId]?.actionState, [userId]: { loading: false, error: "" } },
+            requests: (prev[orgId]?.requests || []).filter((r) => r.user_id !== userId),
+          },
+        }));
+      }
+    } catch {
+      setPendingState((prev) => ({
+        ...prev,
+        [orgId]: {
+          ...prev[orgId],
+          actionState: { ...prev[orgId]?.actionState, [userId]: { loading: false, error: "Could not reach the server." } },
+        },
       }));
     }
   }
@@ -235,48 +327,121 @@ export default function OrganizationsPage() {
               return (
                 <div
                   key={org.org_id}
-                  className="group bg-white border border-slate-100 rounded-2xl p-5 flex items-start gap-4 hover:border-slate-200 hover:shadow-sm transition-all"
+                  className="group bg-white border border-slate-100 rounded-2xl p-5 hover:border-slate-200 hover:shadow-sm transition-all"
                 >
-                  <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                    <Building2 size={18} className="text-emerald-600" />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <h2 className="text-base font-semibold text-slate-900">
-                        {org.org_name}
-                      </h2>
-                      <span className="text-xs text-slate-400">
-                        by {org.owner_name || "Unknown"}
-                      </span>
+                  <div className="flex items-start gap-4">
+                    <div className="shrink-0 w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <Building2 size={18} className="text-emerald-600" />
                     </div>
-                    {org.description && (
-                      <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">
-                        {org.description}
-                      </p>
-                    )}
 
-                    {js.msg && (
-                      <p className="text-xs text-emerald-600 mt-1.5 font-medium">{js.msg}</p>
-                    )}
-                    {js.error && (
-                      <p className="text-xs text-red-500 mt-1.5">{js.error}</p>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline gap-2 flex-wrap">
+                        <h2 className="text-base font-semibold text-slate-900">
+                          {org.org_name}
+                        </h2>
+                        <span className="text-xs text-slate-400">
+                          by {org.owner_name || "Unknown"}
+                        </span>
+                      </div>
+                      {org.description && (
+                        <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">
+                          {org.description}
+                        </p>
+                      )}
+
+                      {js.msg && (
+                        <p className="text-xs text-emerald-600 mt-1.5 font-medium">{js.msg}</p>
+                      )}
+                      {js.error && (
+                        <p className="text-xs text-red-500 mt-1.5">{js.error}</p>
+                      )}
+                    </div>
+
+                    <div className="shrink-0 flex flex-col items-end gap-2">
+                      {!js.msg && (
+                        <button
+                          onClick={() => handleJoin(org.org_id)}
+                          disabled={js.loading}
+                          className="flex items-center gap-1.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
+                        >
+                          {js.loading ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <UserPlus size={13} />
+                          )}
+                          {js.loading ? "Requesting…" : "Request to Join"}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => togglePending(org.org_id)}
+                        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 transition-colors"
+                      >
+                        <ClipboardList size={13} />
+                        {pendingState[org.org_id]?.open ? "Hide requests" : "Manage Requests"}
+                      </button>
+                    </div>
                   </div>
 
-                  {!js.msg && (
-                    <button
-                      onClick={() => handleJoin(org.org_id)}
-                      disabled={js.loading}
-                      className="shrink-0 flex items-center gap-1.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
-                    >
-                      {js.loading ? (
-                        <Loader2 size={13} className="animate-spin" />
-                      ) : (
-                        <UserPlus size={13} />
+                  {pendingState[org.org_id]?.open && (
+                    <div className="mt-3 pt-3 border-t border-slate-100">
+                      {pendingState[org.org_id]?.loading && (
+                        <div className="flex items-center gap-2 py-2">
+                          <Loader2 size={13} className="animate-spin text-slate-400" />
+                          <span className="text-xs text-slate-400">Loading requests…</span>
+                        </div>
                       )}
-                      {js.loading ? "Requesting…" : "Request to Join"}
-                    </button>
+                      {pendingState[org.org_id]?.error && (
+                        <p className="text-xs text-red-500">{pendingState[org.org_id].error}</p>
+                      )}
+                      {!pendingState[org.org_id]?.loading &&
+                        !pendingState[org.org_id]?.error &&
+                        (pendingState[org.org_id]?.requests || []).length === 0 && (
+                          <p className="text-xs text-slate-400 italic">No pending requests.</p>
+                        )}
+                      {!pendingState[org.org_id]?.loading &&
+                        (pendingState[org.org_id]?.requests || []).map((req) => {
+                          const as = pendingState[org.org_id]?.actionState?.[req.user_id] || {};
+                          return (
+                            <div
+                              key={req.user_id}
+                              className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-slate-800">{req.name}</p>
+                                <p className="text-[10px] text-slate-400">
+                                  Requested{" "}
+                                  {req.requested_at
+                                    ? new Date(req.requested_at).toLocaleDateString("en-GB", {
+                                        day: "numeric", month: "short", year: "numeric",
+                                      })
+                                    : "—"}
+                                </p>
+                                {as.error && (
+                                  <p className="text-xs text-red-500 mt-0.5">{as.error}</p>
+                                )}
+                              </div>
+                              <div className="shrink-0 flex gap-2">
+                                <button
+                                  onClick={() => handleApprove(org.org_id, req.user_id, "approved")}
+                                  disabled={as.loading}
+                                  className="flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                                >
+                                  {as.loading ? <Loader2 size={11} className="animate-spin" /> : <Check size={11} />}
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={() => handleApprove(org.org_id, req.user_id, "rejected")}
+                                  disabled={as.loading}
+                                  className="flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50"
+                                >
+                                  {as.loading ? <Loader2 size={11} className="animate-spin" /> : <XCircle size={11} />}
+                                  Reject
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
                   )}
                 </div>
               );

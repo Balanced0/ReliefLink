@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Droplet, Pill, Home, LifeBuoy, Package } from "lucide-react";
+import Link from "next/link";
+import { 
+  Droplet, Pill, Home, LifeBuoy, Package, 
+  AlertTriangle, CheckCircle2, ArrowLeft, Loader2, Sparkles, Send
+} from "lucide-react";
 import { apiPost } from "../../../lib/api";
 
 const CATEGORIES = [
-  { value: "food",     label: "Food & Water",          Icon: Droplet  },
-  { value: "medicine", label: "Medicine & First Aid",   Icon: Pill     },
-  { value: "shelter",  label: "Shelter & Clothing",     Icon: Home     },
-  { value: "rescue",   label: "Rescue & Evac",          Icon: LifeBuoy },
-  { value: "other",    label: "Other Essentials",       Icon: Package  },
+  { value: "food",     label: "Food & Water",          Icon: Droplet,  color: "text-blue-600 bg-blue-50"  },
+  { value: "medicine", label: "Medicine & First Aid",   Icon: Pill,     color: "text-rose-600 bg-rose-50"  },
+  { value: "shelter",  label: "Shelter & Clothing",     Icon: Home,     color: "text-amber-600 bg-amber-50" },
+  { value: "rescue",   label: "Rescue & Evac",          Icon: LifeBuoy, color: "text-emerald-600 bg-emerald-50" },
+  { value: "other",    label: "Other Essentials",       Icon: Package,  color: "text-purple-600 bg-purple-50" },
 ];
 
 const URGENCIES = [
@@ -17,29 +21,29 @@ const URGENCIES = [
     value: "critical",
     label: "Critical",
     dot: "bg-red-500",
-    activeClass: "border-red-500 bg-red-50 text-red-600",
-    inactiveClass: "border-gray-200 text-gray-600 bg-white hover:border-gray-300",
+    activeClass: "border-red-500 bg-red-50 text-red-700 ring-2 ring-red-500/20 font-bold",
+    inactiveClass: "border-slate-200 text-slate-600 bg-white hover:border-slate-300",
   },
   {
     value: "high",
     label: "High",
     dot: "bg-orange-500",
-    activeClass: "border-orange-500 bg-orange-50 text-orange-600",
-    inactiveClass: "border-gray-200 text-gray-600 bg-white hover:border-gray-300",
+    activeClass: "border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-500/20 font-bold",
+    inactiveClass: "border-slate-200 text-slate-600 bg-white hover:border-slate-300",
   },
   {
     value: "medium",
     label: "Medium",
     dot: "bg-blue-500",
-    activeClass: "border-blue-500 bg-blue-50 text-blue-600",
-    inactiveClass: "border-gray-200 text-gray-600 bg-white hover:border-gray-300",
+    activeClass: "border-blue-500 bg-blue-50 text-blue-700 ring-2 ring-blue-500/20 font-bold",
+    inactiveClass: "border-slate-200 text-slate-600 bg-white hover:border-slate-300",
   },
   {
     value: "low",
     label: "Low",
-    dot: "bg-gray-400",
-    activeClass: "border-gray-400 bg-gray-100 text-gray-700",
-    inactiveClass: "border-gray-200 text-gray-600 bg-white hover:border-gray-300",
+    dot: "bg-slate-400",
+    activeClass: "border-slate-500 bg-slate-100 text-slate-800 ring-2 ring-slate-400/20 font-bold",
+    inactiveClass: "border-slate-200 text-slate-600 bg-white hover:border-slate-300",
   },
 ];
 
@@ -127,37 +131,65 @@ export default function PostNeedPage() {
   }
 
   return (
-    <div className="flex flex-col flex-1 bg-gray-50 min-h-screen px-4 py-12">
-      <div className="w-full max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Post a Need</h1>
-          <p className="text-gray-500 mt-1">
-            Describe what your community urgently needs. We&apos;ll connect you with
-            the right responders.
+    <div className="flex flex-col flex-1 bg-slate-50 mesh-bg min-h-screen px-4 py-12">
+      <div className="w-full max-w-3xl mx-auto">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 mb-6 transition-colors"
+        >
+          <ArrowLeft size={14} /> Back to Live Needs Feed
+        </Link>
+
+        <div className="mb-8 space-y-1">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200/80 text-xs font-bold uppercase tracking-wider mb-2">
+            <AlertTriangle size={13} />
+            <span>Emergency Aid Intake</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+            Broadcast an Urgent Need
+          </h1>
+          <p className="text-slate-600 text-sm sm:text-base">
+            Specify the supplies and location. Local volunteers and registered response teams will be alerted immediately.
           </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200/80 p-6 sm:p-10 relative overflow-hidden">
+          {/* Header Accent */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500" />
+
           {success && (
-            <div className="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-700 rounded-md text-sm">
-              ✓ Your need has been posted! Responders in your area will be notified.
+            <div className="mb-6 p-5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-sm flex items-start gap-3 shadow-xs">
+              <CheckCircle2 size={20} className="text-emerald-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-bold">Need Published Successfully!</p>
+                <p className="text-xs text-emerald-700 mt-1">
+                  Responders across your area have been notified. You can track volunteer claims on the dashboard.
+                </p>
+                <Link href="/dashboard" className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 hover:underline mt-2">
+                  View on Live Feed →
+                </Link>
+              </div>
             </div>
           )}
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-md text-sm">
-              {error}
+            <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-2xl text-sm flex items-start gap-2.5">
+              <AlertTriangle size={18} className="text-rose-500 shrink-0 mt-0.5" />
+              <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-6">
-              <p className="text-sm font-medium text-gray-700 mb-1">
-                Categories <span className="text-red-500">*</span>
-              </p>
-              <p className="text-xs text-gray-400 mb-3">Pick any number — select all that apply</p>
+          <form onSubmit={handleSubmit} className="space-y-7">
+            {/* Categories */}
+            <div>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                  Select Required Categories <span className="text-rose-500">*</span>
+                </label>
+                <span className="text-[11px] text-slate-400">Select all that apply</span>
+              </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                {CATEGORIES.map(({ value, label, Icon }) => {
+                {CATEGORIES.map(({ value, label, Icon, color }) => {
                   const selected = categories.includes(value);
                   return (
                     <button
@@ -170,24 +202,23 @@ export default function PostNeedPage() {
                             : [...prev, value]
                         )
                       }
-                      style={{ height: "106px" }}
-                      className={`relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-blue-900 ${
+                      className={`relative flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border transition-all h-28 focus:outline-none ${
                         selected
-                          ? "border-2 border-blue-900 bg-blue-50 text-blue-900"
-                          : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                          ? "border-2 border-emerald-600 bg-emerald-50/70 shadow-xs ring-2 ring-emerald-600/20"
+                          : "border-slate-200/90 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300"
                       }`}
                     >
                       {selected && (
-                        <span className="absolute top-2 right-2 w-4 h-4 bg-blue-900 rounded-full flex items-center justify-center">
-                          <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
-                            <path d="M1.5 4L3.5 6L6.5 2" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+                        <span className="absolute top-2 right-2 w-4 h-4 bg-emerald-600 rounded-full flex items-center justify-center">
+                          <CheckCircle2 size={12} className="text-white" />
                         </span>
                       )}
-                      <Icon size={28} />
+                      <div className={`p-2 rounded-xl ${color}`}>
+                        <Icon size={22} />
+                      </div>
                       <span
-                        className={`text-xs font-medium text-center leading-tight ${
-                          selected ? "text-blue-900" : "text-gray-700"
+                        className={`text-xs font-bold text-center leading-tight ${
+                          selected ? "text-emerald-950" : "text-slate-700"
                         }`}
                       >
                         {label}
@@ -198,17 +229,18 @@ export default function PostNeedPage() {
               </div>
             </div>
 
-            <div className="mb-6">
-              <p className="text-sm font-medium text-gray-700 mb-2">
-                Urgency Level <span className="text-red-500">*</span>
-              </p>
-              <div className="flex flex-wrap gap-2">
+            {/* Urgency */}
+            <div>
+              <label className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">
+                Urgency Level <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex flex-wrap gap-2.5">
                 {URGENCIES.map((u) => (
                   <button
                     key={u.value}
                     type="button"
                     onClick={() => setUrgency(u.value)}
-                    className={`rounded-full border px-4 py-2 flex items-center gap-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-900 ${
+                    className={`rounded-xl border px-4 py-2.5 flex items-center gap-2 text-xs font-semibold transition-all focus:outline-none ${
                       urgency === u.value ? u.activeClass : u.inactiveClass
                     }`}
                   >
@@ -219,78 +251,85 @@ export default function PostNeedPage() {
               </div>
             </div>
 
-            <div className="mb-6">
+            {/* Area */}
+            <div>
               <label
                 htmlFor="area"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2"
               >
-                Area <span className="text-red-500">*</span>
+                Affected Area / Sector <span className="text-rose-500">*</span>
               </label>
               {areasError ? (
-                <p className="text-sm text-red-600">{areasError}</p>
+                <p className="text-sm text-rose-600">{areasError}</p>
               ) : (
                 <select
                   id="area"
                   value={areaId}
                   onChange={(e) => setAreaId(e.target.value)}
                   disabled={areasLoading || loading}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent text-sm disabled:opacity-60"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-900 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 text-sm disabled:opacity-60 transition-all font-medium"
                 >
                   <option value="">
-                    {areasLoading ? "Loading areas…" : "Select an area"}
+                    {areasLoading ? "Loading areas…" : "Select designated crisis zone"}
                   </option>
                   {areas.map((a) => (
                     <option key={a.area_id} value={a.area_id}>
-                      {a.area_name}{a.district ? ` — ${a.district}` : ""}
+                      {a.area_name}{a.district ? ` — (${a.district})` : ""}
                     </option>
                   ))}
                 </select>
               )}
             </div>
 
-            <div className="mb-6">
+            {/* Description */}
+            <div>
               <label
                 htmlFor="description"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2"
               >
-                Description <span className="text-red-500">*</span>
+                Detailed Request &amp; Location Notes <span className="text-rose-500">*</span>
               </label>
               <textarea
                 id="description"
                 rows={4}
-                placeholder="Describe what is needed and any important details — location, conditions, who is affected…"
+                placeholder="Describe exact needs, conditions, landmark coordinates, number of people affected, or special requirements…"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={loading}
-                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent text-sm resize-none disabled:opacity-60"
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 text-sm resize-none disabled:opacity-60 transition-all"
               />
             </div>
 
-            <div className="mb-6">
+            {/* Quantity */}
+            <div>
               <label
                 htmlFor="quantity"
-                className="block text-sm font-medium text-gray-700 mb-2"
+                className="block text-xs font-bold text-slate-800 uppercase tracking-wider mb-2"
               >
-                Quantity{" "}
-                <span className="text-gray-400 font-normal">(optional)</span>
+                Estimated Quantity / Headcount{" "}
+                <span className="text-slate-400 font-normal lowercase">(optional)</span>
               </label>
               <input
                 id="quantity"
                 type="text"
-                placeholder="e.g. 200 boxes, 500 liters, 30 families"
+                placeholder="e.g. 50 Meals, 10 Blankets, 4 Families, 100L Water"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 disabled={loading}
-                className="w-full border border-gray-200 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-900 focus:border-transparent text-sm disabled:opacity-60"
+                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-slate-900 placeholder-slate-400 bg-slate-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 text-sm disabled:opacity-60 transition-all"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || areasLoading}
-              className="w-full bg-blue-900 text-white rounded-lg py-3 font-medium hover:bg-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-900 focus:ring-offset-2 disabled:opacity-50"
+              className="w-full bg-slate-950 hover:bg-slate-800 text-white rounded-xl py-4 font-bold text-sm shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]"
             >
-              {loading ? "Publishing…" : "Publish Need"}
+              {loading ? (
+                <><Loader2 size={16} className="animate-spin text-slate-400" /> Broadcasting Need…</>
+              ) : (
+                <><Send size={16} /> Broadcast Emergency Need</>
+              )}
             </button>
           </form>
         </div>
