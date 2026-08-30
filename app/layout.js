@@ -38,6 +38,7 @@ export default function RootLayout({ children }) {
               <Link href="#" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Browse Needs</Link>
               <Link href="/needs/new" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Post a Need</Link>
               <Link href="/dashboard" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Dashboard</Link>
+              <Link href="/organizations" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">Organizations</Link>
               <Link href="#" className="text-sm font-medium text-slate-600 hover:text-slate-950 transition-colors">About</Link>
             </nav>
 

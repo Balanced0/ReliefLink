@@ -5,8 +5,9 @@ import Link from "next/link";
 import {
   Droplet, Pill, Home, LifeBuoy, Package,
   X, MapPin, User, Calendar, Layers, CheckCircle, LogIn,
-  HandHeart,
+  HandHeart, Flag,
 } from "lucide-react";
+import NeedComments from "./NeedComments";
 
 const CATEGORY_META = {
   food:     { Icon: Droplet,  label: "Food & Water" },
@@ -88,6 +89,12 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
   const [actionError, setActionError]     = useState("");
   const [actionSuccess, setActionSuccess] = useState("");
 
+  const [showReport, setShowReport]     = useState(false);
+  const [reportReason, setReportReason] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportMsg, setReportMsg]       = useState("");
+  const [reportErr, setReportErr]       = useState("");
+
   useEffect(() => {
     (async () => {
       try {
@@ -147,6 +154,35 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
       setActionError("Could not reach the server.");
     } finally {
       setActionLoading(false);
+    }
+  }
+
+  async function handleReport(e) {
+    e.preventDefault();
+    setReportLoading(true);
+    setReportErr("");
+    setReportMsg("");
+    try {
+      const res  = await fetch(`http://localhost:5000/api/reports/${need.need_id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(reportReason.trim() ? { reason: reportReason.trim() } : {}),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 409) {
+        setReportErr(data.message || "You've already reported this need.");
+      } else if (!res.ok) {
+        setReportErr(data.error || "Could not submit report.");
+      } else {
+        setReportMsg("Report submitted. Thank you.");
+        setReportReason("");
+        setShowReport(false);
+      }
+    } catch {
+      setReportErr("Could not reach the server.");
+    } finally {
+      setReportLoading(false);
     }
   }
 
@@ -239,13 +275,25 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
         <div className={`bg-gradient-to-br ${u.headerBg} px-6 pt-5 pb-6 relative`}>
           <div className="sm:hidden w-10 h-1 bg-white/30 rounded-full mx-auto mb-4" />
 
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            className="absolute top-4 right-4 p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-          >
-            <X size={18} />
-          </button>
+          <div className="absolute top-4 right-4 flex items-center gap-1">
+            {user && (
+              <button
+                onClick={() => { setShowReport((v) => !v); setReportErr(""); }}
+                aria-label="Report this need"
+                title="Report this need"
+                className="p-2 rounded-xl text-white/50 hover:text-white/80 hover:bg-white/10 transition-colors"
+              >
+                <Flag size={15} />
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              aria-label="Close"
+              className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
 
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusMeta.pill}`}>
@@ -303,7 +351,50 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
                 {actionSuccess}
               </div>
             )}
+
+            {showReport && (
+              <form
+                onSubmit={handleReport}
+                className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-2"
+              >
+                <p className="text-xs font-semibold text-amber-800 flex items-center gap-1.5">
+                  <Flag size={12} /> Report this need
+                </p>
+                <input
+                  type="text"
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  placeholder="Reason (optional)"
+                  maxLength={300}
+                  className="w-full text-sm border border-amber-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300 placeholder-gray-400"
+                />
+                {reportErr && (
+                  <p className="text-xs text-red-600">{reportErr}</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={reportLoading}
+                    className="text-xs font-semibold bg-amber-700 hover:bg-amber-600 text-white px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {reportLoading ? "Submitting…" : "Submit report"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowReport(false); setReportErr(""); }}
+                    className="text-xs text-amber-700 hover:underline"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
+            {reportMsg && (
+              <p className="text-xs text-emerald-600">{reportMsg}</p>
+            )}
           </div>
+
+          <NeedComments needId={need.need_id} />
 
           <div className="px-6 pb-6 pt-2 mt-auto">
             {renderAction()}
