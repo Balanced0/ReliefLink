@@ -9,6 +9,7 @@ import claimRoutes from "./routes/claimRoutes.js";
 import areaRoutes from "./routes/areaRoutes.js";
 import bookmarkRoutes from "./routes/bookmarkRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import organizationRoutes from "./routes/organizationRoutes.js";
 
 
 const app = express();
@@ -30,6 +31,7 @@ app.use("/api/claims", claimRoutes);
 app.use("/api/areas", areaRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/organizations", organizationRoutes);
 
 
 app.get("/", (req, res) => {
