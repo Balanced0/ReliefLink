@@ -60,11 +60,12 @@ export async function getImpactSummary(req, res) {
     // 3. Needs-by-category breakdown
     const needsDateFilter = dateFilter.replace(/created_at/g, "n.created_at");
     const [categoryResult] = await db.query(
-      `SELECT n.category, COUNT(n.need_id) as count
+      `SELECT nc.category, COUNT(n.need_id) as count
        FROM needs n
+       JOIN need_categories nc ON n.need_id = nc.need_id
        ${areaJoin}
        WHERE 1=1 ${areaCondition} ${needsDateFilter}
-       GROUP BY n.category`,
+       GROUP BY nc.category`,
       [...areaParams, ...dateParams]
     );
 

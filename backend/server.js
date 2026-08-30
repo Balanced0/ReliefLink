@@ -10,7 +10,8 @@ import areaRoutes from "./routes/areaRoutes.js";
 import bookmarkRoutes from "./routes/bookmarkRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import organizationRoutes from "./routes/organizationRoutes.js";
-
+import userRoutes from "./routes/userRoutes.js";
+import statsRoutes from "./routes/statsRoutes.js";
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -32,8 +33,8 @@ app.use("/api/areas", areaRoutes);
 app.use("/api/bookmarks", bookmarkRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/organizations", organizationRoutes);
-
-
+app.use("/api/users", userRoutes);
+app.use("/api/stats", statsRoutes);
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });

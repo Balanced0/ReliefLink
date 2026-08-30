@@ -18,14 +18,21 @@ export async function getUserProfile(req, res) {
 
     // Get contribution history
     const [contributions] = await db.query(
-      `SELECT lc.contribution_id, lc.fulfilled_at, n.need_id, n.category, n.description, a.area_name
+      `SELECT lc.contribution_id, lc.fulfilled_at, n.need_id, n.description, a.area_name,
+              GROUP_CONCAT(nc.category) as categories
        FROM logs_contribution lc
        JOIN needs n ON lc.need_id = n.need_id
        JOIN areas a ON n.area_id = a.area_id
+       LEFT JOIN need_categories nc ON n.need_id = nc.need_id
        WHERE lc.volunteer_id = ?
+       GROUP BY lc.contribution_id, lc.fulfilled_at, n.need_id, n.description, a.area_name
        ORDER BY lc.fulfilled_at DESC`,
       [user_id]
     );
+
+    contributions.forEach(c => {
+        c.categories = c.categories ? c.categories.split(',') : [];
+    });
 
     // Get ratings
     const [ratings] = await db.query(
