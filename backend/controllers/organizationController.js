@@ -132,12 +132,14 @@ export async function respondToJoinRequest(req, res) {
 
 export async function getOrganizationMembers(req, res) {
   try {
+    const status = req.query.status || "approved";
+
     const [members] = await db.query(
       `SELECT u.user_id, u.name, j.requested_at
        FROM joins j
        JOIN users u ON j.user_id = u.user_id
-       WHERE j.org_id = ? AND j.status = 'approved'`,
-      [req.params.org_id],
+       WHERE j.org_id = ? AND j.status = ?`,
+      [req.params.org_id, status],
     );
 
     res.json(members);
