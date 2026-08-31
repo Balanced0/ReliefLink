@@ -173,6 +173,31 @@ export default function Navbar() {
           >
             About
           </Link>
+
+          {authData && authData.role === "admin" && (
+            <div className="flex items-center gap-1 border-l border-slate-200 ml-1 pl-2">
+              <Link
+                href="/admin/reports"
+                className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-all ${
+                  pathname === "/admin/reports"
+                    ? "bg-amber-50 text-amber-700 font-bold"
+                    : "text-slate-700 hover:text-amber-700 hover:bg-amber-50/70"
+                }`}
+              >
+                Reports Queue
+              </Link>
+              <Link
+                href="/admin/users"
+                className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-all ${
+                  pathname === "/admin/users"
+                    ? "bg-amber-50 text-amber-700 font-bold"
+                    : "text-slate-700 hover:text-amber-700 hover:bg-amber-50/70"
+                }`}
+              >
+                Manage Users
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* Auth / Avatar Section */}
@@ -227,6 +252,8 @@ export default function Navbar() {
                           <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${
                             displayRole === "volunteer"
                               ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : displayRole === "admin"
+                              ? "bg-amber-50 text-amber-800 border border-amber-200"
                               : "bg-blue-50 text-blue-700 border border-blue-200"
                           }`}>
                             {displayRole}
@@ -276,6 +303,30 @@ export default function Navbar() {
                       <Building2 size={15} className="text-purple-600" />
                       <span>Organizations</span>
                     </Link>
+
+                    {authData?.role === "admin" && (
+                      <div className="pt-2 mt-1 border-t border-slate-100 space-y-1">
+                        <p className="px-3.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Admin Operations
+                        </p>
+                        <Link
+                          href="/admin/reports"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-amber-800 hover:bg-amber-50/70 transition-colors"
+                        >
+                          <AlertTriangle size={15} className="text-amber-600" />
+                          <span>Reports Queue</span>
+                        </Link>
+                        <Link
+                          href="/admin/users"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-700 hover:text-amber-800 hover:bg-amber-50/70 transition-colors"
+                        >
+                          <ShieldCheck size={15} className="text-amber-600" />
+                          <span>User Management</span>
+                        </Link>
+                      </div>
+                    )}
                   </div>
 
                   {/* Logout Button */}
@@ -337,6 +388,16 @@ export default function Navbar() {
           <Link href="/about" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
             About
           </Link>
+          {authData && authData.role === "admin" && (
+            <>
+              <Link href="/admin/reports" className="shrink-0 font-medium text-amber-700 hover:text-amber-800 px-2 py-1 rounded bg-amber-50 border border-amber-200">
+                Reports
+              </Link>
+              <Link href="/admin/users" className="shrink-0 font-medium text-amber-700 hover:text-amber-800 px-2 py-1 rounded bg-amber-50 border border-amber-200">
+                Users
+              </Link>
+            </>
+          )}
         </div>
 
         {authData && authData.user_id && (

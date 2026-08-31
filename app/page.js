@@ -134,8 +134,6 @@ export default function HomePage() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               <span className="text-emerald-700 font-bold uppercase tracking-wider text-[11px]">Real-Time Aid Routing</span>
-              <span className="text-slate-300">|</span>
-              <span className="text-slate-600">Zero Bureaucracy • Direct Impact</span>
             </div>
 
             {/* Main Headline */}
@@ -167,47 +165,6 @@ export default function HomePage() {
                 <AlertTriangle size={17} className="text-amber-500" />
                 <span>Request Urgent Assistance</span>
               </Link>
-            </div>
-
-            {/* Quick Stats Strip */}
-            <div className="pt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto">
-              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-slate-200/70 shadow-xs text-left">
-                <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">
-                  <Flame size={14} className="text-rose-500" />
-                  <span>Response Time</span>
-                </div>
-                <div className="text-2xl font-black text-slate-950">&lt; 15 mins</div>
-                <p className="text-[11px] text-slate-500 mt-0.5">Average claim dispatch</p>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-slate-200/70 shadow-xs text-left">
-                <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">
-                  <CheckCircle2 size={14} className="text-emerald-600" />
-                  <span>Fulfilled Aid</span>
-                </div>
-                <div className="text-2xl font-black text-slate-950">
-                  {stats.total_fulfilled > 0 ? `${stats.total_fulfilled}+` : "100%"}
-                </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">Verified delivered needs</p>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-slate-200/70 shadow-xs text-left">
-                <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">
-                  <Building2 size={14} className="text-blue-600" />
-                  <span>Relief Groups</span>
-                </div>
-                <div className="text-2xl font-black text-slate-950">Active NGOs</div>
-                <p className="text-[11px] text-slate-500 mt-0.5">Coordinated aid teams</p>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-slate-200/70 shadow-xs text-left">
-                <div className="flex items-center gap-2 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-1">
-                  <ShieldCheck size={14} className="text-purple-600" />
-                  <span>Transparency</span>
-                </div>
-                <div className="text-2xl font-black text-slate-950">Peer Rated</div>
-                <p className="text-[11px] text-slate-500 mt-0.5">Community verified audits</p>
-              </div>
             </div>
           </div>
         </div>
