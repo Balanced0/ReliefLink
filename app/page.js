@@ -62,38 +62,20 @@ const CATEGORY_ITEMS = [
   },
 ];
 
-const SAMPLE_LIVE_NEEDS = [
-  {
-    id: 1,
-    title: "Urgent: 50L Clean Drinking Water & Infant Formula",
-    location: "Riverdale High Ground Shelter, Sector 4",
-    urgency: "critical",
-    category: "food",
-    time: "8 mins ago",
-    status: "Open"
-  },
-  {
-    id: 2,
-    title: "Insulin Refrigeration Battery & Wound Dressing",
-    location: "Community Center East, Area 2",
-    urgency: "high",
-    category: "medicine",
-    time: "24 mins ago",
-    status: "Claimed"
-  },
-  {
-    id: 3,
-    title: "Emergency Evac Boat Support for Elderly Couple",
-    location: "Lower Valley Floodline, Zone B",
-    urgency: "critical",
-    category: "rescue",
-    time: "35 mins ago",
-    status: "Fulfilled"
-  }
-];
+function formatTimeAgo(dateStr) {
+  if (!dateStr) return "Recently";
+  const date = new Date(dateStr);
+  const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (isNaN(diffSec) || diffSec < 60) return "Just now";
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)} mins ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)} hrs ago`;
+  return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+}
 
 export default function HomePage() {
   const [stats, setStats] = useState({ total_fulfilled: 0, active_volunteers: 0 });
+  const [liveNeeds, setLiveNeeds] = useState([]);
+  const [loadingNeeds, setLoadingNeeds] = useState(true);
 
   useEffect(() => {
     // Attempt to load general stats if available
@@ -115,7 +97,23 @@ export default function HomePage() {
         // Fallback default numbers
       }
     }
+
+    async function loadLiveNeeds() {
+      try {
+        const res = await fetch("http://localhost:5000/api/needs?status=open");
+        if (res.ok) {
+          const data = await res.json().catch(() => []);
+          setLiveNeeds(Array.isArray(data) ? data.slice(0, 3) : []);
+        }
+      } catch {
+        setLiveNeeds([]);
+      } finally {
+        setLoadingNeeds(false);
+      }
+    }
+
     loadStats();
+    loadLiveNeeds();
   }, []);
 
   return (
@@ -195,57 +193,76 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {SAMPLE_LIVE_NEEDS.map((need) => (
-              <div
-                key={need.id}
-                className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                      need.urgency === "critical"
-                        ? "bg-red-100 text-red-700 border border-red-200"
-                        : "bg-orange-100 text-orange-700 border border-orange-200"
-                    }`}>
-                      {need.urgency} Urgency
-                    </span>
-                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                      <Clock size={11} /> {need.time}
-                    </span>
+          {loadingNeeds ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 h-48 animate-pulse"
+                />
+              ))}
+            </div>
+          ) : liveNeeds.length === 0 ? (
+            <div className="text-center py-10 bg-slate-50 border border-slate-200/80 rounded-2xl">
+              <p className="text-slate-500 text-sm font-medium">No open needs currently awaiting dispatch.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {liveNeeds.map((need) => (
+                <div
+                  key={need.need_id}
+                  className="bg-slate-50 rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:shadow-md hover:border-slate-300 transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                      <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                        need.urgency === "critical"
+                          ? "bg-red-100 text-red-700 border border-red-200"
+                          : need.urgency === "high"
+                          ? "bg-orange-100 text-orange-700 border border-orange-200"
+                          : need.urgency === "medium"
+                          ? "bg-blue-100 text-blue-700 border border-blue-200"
+                          : "bg-slate-100 text-slate-700 border border-slate-200"
+                      }`}>
+                        {need.urgency || "Normal"} Urgency
+                      </span>
+                      <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                        <Clock size={11} /> {formatTimeAgo(need.created_at)}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-bold text-slate-900 line-clamp-2 mb-2">
+                      {need.description}
+                    </h3>
+
+                    <p className="text-xs text-slate-500 flex items-center gap-1 mb-4">
+                      <MapPin size={12} className="text-slate-400 shrink-0" />
+                      <span className="truncate">{need.area_name || (need.area_id ? `Area ${need.area_id}` : "Unknown Area")}</span>
+                    </p>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-900 line-clamp-2 mb-2">
-                    {need.title}
-                  </h3>
-
-                  <p className="text-xs text-slate-500 flex items-center gap-1 mb-4">
-                    <MapPin size={12} className="text-slate-400 shrink-0" />
-                    <span className="truncate">{need.location}</span>
-                  </p>
+                  <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${
+                      need.status === "open"
+                        ? "bg-blue-100 text-blue-800"
+                        : need.status === "claimed"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-emerald-100 text-emerald-800"
+                    }`}>
+                      Status: {need.status ? need.status.charAt(0).toUpperCase() + need.status.slice(1) : "Open"}
+                    </span>
+                    <Link
+                      href="/dashboard"
+                      className="text-xs font-bold text-slate-900 hover:text-emerald-600 flex items-center gap-1"
+                    >
+                      <span>View</span>
+                      <ChevronRight size={13} />
+                    </Link>
+                  </div>
                 </div>
-
-                <div className="pt-3 border-t border-slate-200/60 flex items-center justify-between">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${
-                    need.status === "Open"
-                      ? "bg-blue-100 text-blue-800"
-                      : need.status === "Claimed"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-emerald-100 text-emerald-800"
-                  }`}>
-                    Status: {need.status}
-                  </span>
-                  <Link
-                    href="/dashboard"
-                    className="text-xs font-bold text-slate-900 hover:text-emerald-600 flex items-center gap-1"
-                  >
-                    <span>View</span>
-                    <ChevronRight size={13} />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

@@ -21,6 +21,7 @@ export default function OrganizationsPage() {
   const [joinState, setJoinState] = useState({});
 
   const [pendingState, setPendingState] = useState({});
+  const [user, setUser] = useState(null);
 
   async function fetchOrgs() {
     setLoadingOrgs(true);
@@ -43,6 +44,22 @@ export default function OrganizationsPage() {
 
   useEffect(() => {
     fetchOrgs();
+    async function checkAuth() {
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/me", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json().catch(() => null);
+          setUser(data);
+        } else {
+          setUser(false);
+        }
+      } catch {
+        setUser(false);
+      }
+    }
+    checkAuth();
   }, []);
 
   async function handleCreate(e) {
@@ -212,14 +229,22 @@ export default function OrganizationsPage() {
                 Browse volunteer groups and request to join one, or start your own.
               </p>
             </div>
-            <button
-              onClick={() => { setShowCreate((v) => !v); setCreateError(""); }}
-              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all"
-            >
-              <Plus size={15} />
-              Create Organization
-            </button>
+            {user?.role !== "affected" && (
+              <button
+                onClick={() => { setShowCreate((v) => !v); setCreateError(""); }}
+                className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all"
+              >
+                <Plus size={15} />
+                Create Organization
+              </button>
+            )}
           </div>
+
+          {user?.role === "affected" && (
+            <div className="mt-4 p-3.5 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl text-sm font-medium">
+              Organizations are available to volunteers only.
+            </div>
+          )}
 
           {showCreate && (
             <form
@@ -358,27 +383,35 @@ export default function OrganizationsPage() {
                     </div>
 
                     <div className="shrink-0 flex flex-col items-end gap-2">
-                      {!js.msg && (
-                        <button
-                          onClick={() => handleJoin(org.org_id)}
-                          disabled={js.loading}
-                          className="flex items-center gap-1.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
-                        >
-                          {js.loading ? (
-                            <Loader2 size={13} className="animate-spin" />
-                          ) : (
-                            <UserPlus size={13} />
+                      {user?.role === "affected" ? (
+                        <p className="text-xs text-slate-500 italic">
+                          Organizations are available to volunteers only.
+                        </p>
+                      ) : (
+                        <>
+                          {!js.msg && (
+                            <button
+                              onClick={() => handleJoin(org.org_id)}
+                              disabled={js.loading}
+                              className="flex items-center gap-1.5 border border-slate-200 hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all disabled:opacity-50"
+                            >
+                              {js.loading ? (
+                                <Loader2 size={13} className="animate-spin" />
+                              ) : (
+                                <UserPlus size={13} />
+                              )}
+                              {js.loading ? "Requesting…" : "Request to Join"}
+                            </button>
                           )}
-                          {js.loading ? "Requesting…" : "Request to Join"}
-                        </button>
+                          <button
+                            onClick={() => togglePending(org.org_id)}
+                            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 transition-colors"
+                          >
+                            <ClipboardList size={13} />
+                            {pendingState[org.org_id]?.open ? "Hide requests" : "Manage Requests"}
+                          </button>
+                        </>
                       )}
-                      <button
-                        onClick={() => togglePending(org.org_id)}
-                        className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 transition-colors"
-                      >
-                        <ClipboardList size={13} />
-                        {pendingState[org.org_id]?.open ? "Hide requests" : "Manage Requests"}
-                      </button>
                     </div>
                   </div>
 

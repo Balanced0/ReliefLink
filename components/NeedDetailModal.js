@@ -212,6 +212,23 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
 
     if (need.status === "open") {
       if (user) {
+        if (user.role === "affected") {
+          return (
+            <div className="space-y-2">
+              <button
+                disabled
+                className="w-full flex items-center justify-center gap-2 bg-blue-900/40 text-white/70 rounded-xl py-3 font-semibold text-sm cursor-not-allowed"
+              >
+                <HandHeart size={16} />
+                Claim This Need
+              </button>
+              <p className="text-center text-xs text-gray-500">
+                Only volunteers can claim needs.
+              </p>
+            </div>
+          );
+        }
+
         return (
           <button
             onClick={handleClaim}

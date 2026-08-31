@@ -143,16 +143,18 @@ export default function Navbar() {
           >
             Post a Need
           </Link>
-          <Link
-            href="/organizations"
-            className={`text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
-              pathname === "/organizations"
-                ? "bg-emerald-50 text-emerald-700 font-bold"
-                : "text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70"
-            }`}
-          >
-            Organizations
-          </Link>
+          {authData?.role !== "affected" && (
+            <Link
+              href="/organizations"
+              className={`text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
+                pathname === "/organizations"
+                  ? "bg-emerald-50 text-emerald-700 font-bold"
+                  : "text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70"
+              }`}
+            >
+              Organizations
+            </Link>
+          )}
           <Link
             href="/impact"
             className={`text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
@@ -297,14 +299,16 @@ export default function Navbar() {
                           <span>Post a Need</span>
                         </Link>
 
-                        <Link
-                          href="/organizations"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70 transition-colors"
-                        >
-                          <Building2 size={15} className="text-purple-600" />
-                          <span>Organizations</span>
-                        </Link>
+                        {authData?.role !== "affected" && (
+                          <Link
+                            href="/organizations"
+                            onClick={() => setDropdownOpen(false)}
+                            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70 transition-colors"
+                          >
+                            <Building2 size={15} className="text-purple-600" />
+                            <span>Organizations</span>
+                          </Link>
+                        )}
                       </>
                     )}
 
@@ -383,9 +387,11 @@ export default function Navbar() {
           <Link href="/needs/new" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
             Post Need
           </Link>
-          <Link href="/organizations" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
-            Organizations
-          </Link>
+          {authData?.role !== "affected" && (
+            <Link href="/organizations" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
+              Organizations
+            </Link>
+          )}
           <Link href="/impact" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
             Impact
           </Link>
