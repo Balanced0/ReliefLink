@@ -2,6 +2,10 @@ import { db } from "../db/index.js";
 
 export async function claimNeed(req, res) {
   try {
+    if (req.user.role !== "volunteer") {
+      return res.status(403).json({ error: "Only volunteers can claim needs." });
+    }
+
     const need_id = req.params.id;
 
     const [needs] = await db.query("SELECT status FROM needs WHERE need_id = ?", [need_id]);

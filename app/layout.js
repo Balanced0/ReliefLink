@@ -55,12 +55,6 @@ export default function RootLayout({ children }) {
                 <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
                   Decentralized disaster response platform connecting affected individuals, local responders, and humanitarian groups for direct, verifiable aid delivery.
                 </p>
-                <div className="flex items-center gap-3 pt-2">
-                  <span className="inline-flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-3 py-1 rounded-full">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    Real-Time Dispatch Engine
-                  </span>
-                </div>
               </div>
 
               {/* Quick Links */}
