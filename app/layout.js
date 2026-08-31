@@ -128,7 +128,7 @@ export default function RootLayout({ children }) {
                   <span>Emergency Crisis Hotline</span>
                 </div>
                 <p className="text-xs text-slate-400 leading-relaxed mb-3">
-                  If you are in immediate life-threatening danger, contact local emergency services immediately (911/999).
+                  If you are in immediate life-threatening danger, contact local emergency services immediately (999).
                 </p>
                 <Link
                   href="/needs/new"

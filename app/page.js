@@ -121,7 +121,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col flex-1 bg-slate-50 mesh-bg selection:bg-emerald-500 selection:text-white">
       {/* ─── Hero Section ────────────────────────────────────────── */}
-      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden">
+      <section className="relative pt-12 pb-20 lg:pt-20 lg:pb-28 overflow-hidden min-h-screen">
         {/* Decorative background glow spheres */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[400px] bg-gradient-to-tr from-emerald-400/20 via-teal-300/15 to-blue-400/20 blur-3xl pointer-events-none rounded-full" />
 

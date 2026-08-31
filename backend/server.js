@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import needRoutes from "./routes/needRoutes.js";
 import claimRoutes from "./routes/claimRoutes.js";
 import areaRoutes from "./routes/areaRoutes.js";
@@ -27,6 +28,7 @@ app.use(
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/needs", needRoutes);
 app.use("/api/claims", claimRoutes);
 app.use("/api/areas", areaRoutes);
