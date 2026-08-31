@@ -7,7 +7,7 @@ export async function getFlaggedNeeds(req, res) {
        LEFT JOIN reports ON reports.need_id = needs.need_id AND reports.resolved = FALSE
        JOIN areas ON needs.area_id = areas.area_id
        JOIN users ON needs.posted_by = users.user_id
-       WHERE needs.is_hidden = TRUE OR reports.report_id IS NOT NULL
+       WHERE needs.is_hidden = TRUE OR reports.need_id IS NOT NULL
        ORDER BY needs.created_at DESC`,
     );
 
