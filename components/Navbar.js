@@ -286,23 +286,27 @@ export default function Navbar() {
                       </div>
                     </Link>
 
-                    <Link
-                      href="/needs/new"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70 transition-colors"
-                    >
-                      <PlusCircle size={15} className="text-blue-600" />
-                      <span>Post a Need</span>
-                    </Link>
+                    {authData?.role !== "admin" && (
+                      <>
+                        <Link
+                          href="/needs/new"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70 transition-colors"
+                        >
+                          <PlusCircle size={15} className="text-blue-600" />
+                          <span>Post a Need</span>
+                        </Link>
 
-                    <Link
-                      href="/organizations"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70 transition-colors"
-                    >
-                      <Building2 size={15} className="text-purple-600" />
-                      <span>Organizations</span>
-                    </Link>
+                        <Link
+                          href="/organizations"
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70 transition-colors"
+                        >
+                          <Building2 size={15} className="text-purple-600" />
+                          <span>Organizations</span>
+                        </Link>
+                      </>
+                    )}
 
                     {authData?.role === "admin" && (
                       <div className="pt-2 mt-1 border-t border-slate-100 space-y-1">

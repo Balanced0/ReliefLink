@@ -10,6 +10,7 @@ import {
 
 export default function AdminUsersPage() {
   const [authStatus, setAuthStatus] = useState("checking"); // "checking" | "unauthorized" | "authorized"
+  const [currentUserId, setCurrentUserId] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -38,6 +39,7 @@ export default function AdminUsersPage() {
           return;
         }
 
+        setCurrentUserId(authUser.user_id);
         setAuthStatus("authorized");
         await fetchUsers();
       } catch (err) {
@@ -301,14 +303,20 @@ export default function AdminUsersPage() {
                       const isProcessing = processingId === u.user_id;
                       const isActive = u.account_status === "active";
                       const rowErrMsg = rowError[u.user_id];
+                      const isSelf = currentUserId !== null && u.user_id === currentUserId;
 
                       return (
                         <tr key={u.user_id} className="hover:bg-slate-50/50 transition-colors">
                           {/* User Name & Email */}
                           <td className="py-4 px-5">
                             <div className="flex flex-col">
-                              <span className="font-bold text-slate-900">
+                              <span className="font-bold text-slate-900 flex items-center gap-2">
                                 {u.name || `User #${u.user_id}`}
+                                {isSelf && (
+                                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                                    You
+                                  </span>
+                                )}
                               </span>
                               <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
                                 <Mail size={11} />
@@ -371,7 +379,17 @@ export default function AdminUsersPage() {
 
                           {/* Action Button */}
                           <td className="py-4 px-5 whitespace-nowrap text-right">
-                            {isActive ? (
+                            {isSelf ? (
+                              <button
+                                type="button"
+                                disabled={true}
+                                title="You cannot change your own account status"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-60"
+                              >
+                                <UserX size={12} />
+                                <span>Suspend</span>
+                              </button>
+                            ) : isActive ? (
                               <button
                                 type="button"
                                 disabled={isProcessing}
