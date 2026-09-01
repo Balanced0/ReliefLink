@@ -56,10 +56,18 @@ export async function getNeeds(req, res) {
     const { status, urgency, area_id, category } = req.query;
 
     let sql = `
-      SELECT needs.*, areas.area_name, users.name AS poster_name
+      SELECT
+        needs.*,
+        areas.area_name,
+        users.name AS poster_name,
+        claims.claim_id AS claim_id,
+        claims.volunteer_id AS claimed_by_id,
+        claimant.name AS claimed_by_name
       FROM needs
       JOIN areas ON needs.area_id = areas.area_id
       JOIN users ON needs.posted_by = users.user_id
+      LEFT JOIN claims ON claims.need_id = needs.need_id AND claims.status IN ('active', 'fulfilled')
+      LEFT JOIN users claimant ON claims.volunteer_id = claimant.user_id
       WHERE needs.is_hidden = FALSE
     `;
     const params = [];
@@ -104,10 +112,19 @@ export async function getNeeds(req, res) {
 export async function getNeedById(req, res) {
   try {
     const [needs] = await db.query(
-      `SELECT needs.*, areas.area_name, users.name AS poster_name
+      `SELECT
+         needs.*,
+         areas.area_name,
+         users.name AS poster_name,
+         claims.claim_id AS claim_id,
+         claims.status AS claim_status,
+         claims.volunteer_id AS claimed_by_id,
+         claimant.name AS claimed_by_name
        FROM needs
        JOIN areas ON needs.area_id = areas.area_id
        JOIN users ON needs.posted_by = users.user_id
+       LEFT JOIN claims ON claims.need_id = needs.need_id AND claims.status IN ('active', 'fulfilled')
+       LEFT JOIN users claimant ON claims.volunteer_id = claimant.user_id
        WHERE needs.need_id = ?`,
       [req.params.id],
     );
