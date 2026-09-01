@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { MessageCircle, Send, User } from "lucide-react";
 
-export default function NeedComments({ needId }) {
+export default function NeedComments({ needId, postedBy, claimedById }) {
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -101,6 +101,10 @@ export default function NeedComments({ needId }) {
     });
   }
 
+  const isPoster = Boolean(user && Number(user.user_id) === Number(postedBy));
+  const isClaimant = Boolean(user && claimedById && Number(user.user_id) === Number(claimedById));
+  const canComment = isPoster || isClaimant;
+
   return (
     <div className="border-t border-gray-100 pt-4 mt-2">
       <div className="flex items-center gap-2 px-6 mb-3">
@@ -134,7 +138,7 @@ export default function NeedComments({ needId }) {
 
         {!loading && !error && user && comments.length === 0 && (
           <p className="text-xs text-gray-400 italic">
-            No updates yet. Be the first to add one.
+            No updates yet.
           </p>
         )}
 
@@ -165,32 +169,38 @@ export default function NeedComments({ needId }) {
           ))}
 
         {user && (
-          <form onSubmit={handlePost} className="pt-1">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Add an update…"
-                maxLength={500}
-                className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900/40 placeholder-gray-400 transition-all"
-              />
-              <button
-                type="submit"
-                disabled={posting || !content.trim()}
-                className="shrink-0 flex items-center gap-1.5 bg-blue-900 hover:bg-blue-800 text-white px-3 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
-              >
-                <Send size={13} />
-                {posting ? "Posting…" : "Post"}
-              </button>
-            </div>
-            {postError && (
-              <p className="text-xs text-red-600 mt-1.5">{postError}</p>
-            )}
-            {postSuccess && (
-              <p className="text-xs text-emerald-600 mt-1.5">{postSuccess}</p>
-            )}
-          </form>
+          canComment ? (
+            <form onSubmit={handlePost} className="pt-1">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Add an update…"
+                  maxLength={500}
+                  className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900/40 placeholder-gray-400 transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={posting || !content.trim()}
+                  className="shrink-0 flex items-center gap-1.5 bg-blue-900 hover:bg-blue-800 text-white px-3 py-2 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50"
+                >
+                  <Send size={13} />
+                  {posting ? "Posting…" : "Post"}
+                </button>
+              </div>
+              {postError && (
+                <p className="text-xs text-red-600 mt-1.5">{postError}</p>
+              )}
+              {postSuccess && (
+                <p className="text-xs text-emerald-600 mt-1.5">{postSuccess}</p>
+              )}
+            </form>
+          ) : (
+            <p className="text-xs text-slate-400 italic bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-center">
+              Updates are restricted to the person who posted this need and the assigned volunteer.
+            </p>
+          )
         )}
       </div>
     </div>

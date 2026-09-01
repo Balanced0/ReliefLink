@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   Droplet, Pill, Home, LifeBuoy, Package,
   X, MapPin, User, Calendar, Layers, CheckCircle, LogIn,
-  HandHeart, Flag,
+  HandHeart, Flag, Star,
 } from "lucide-react";
 import NeedComments from "./NeedComments";
 
@@ -79,6 +79,13 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportMsg, setReportMsg]       = useState("");
   const [reportErr, setReportErr]       = useState("");
+
+  const [showRateVolunteer, setShowRateVolunteer] = useState(false);
+  const [ratingStars, setRatingStars]             = useState(0);
+  const [ratingComment, setRatingComment]         = useState("");
+  const [ratingLoading, setRatingLoading]         = useState(false);
+  const [ratingSuccess, setRatingSuccess]         = useState("");
+  const [ratingError, setRatingError]             = useState("");
 
   const needStatus = actionFulfilled ? "fulfilled" : actionClaimed ? "claimed" : need.status;
   const claimedById = actionClaimed ? user?.user_id : need.claimed_by_id;
@@ -177,6 +184,37 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
     }
   }
 
+  async function handleRateVolunteer(e) {
+    e.preventDefault();
+    if (!ratingStars) return;
+    const targetUserId = claimedById || need.claimed_by_id;
+    if (!targetUserId) return;
+    setRatingLoading(true);
+    setRatingError("");
+    setRatingSuccess("");
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${targetUserId}/rate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ stars: ratingStars, ...(ratingComment.trim() ? { comment: ratingComment.trim() } : {}) }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setRatingError(data.error || "Could not submit rating.");
+      } else {
+        setRatingSuccess("Rating and review submitted! Thank you for supporting our volunteers.");
+        setShowRateVolunteer(false);
+        setRatingStars(0);
+        setRatingComment("");
+      }
+    } catch {
+      setRatingError("Could not reach the server.");
+    } finally {
+      setRatingLoading(false);
+    }
+  }
+
   const u          = URGENCY_META[need.urgency] || URGENCY_META.low;
   const statusMeta = STATUS_META[needStatus]   || { pill: "bg-gray-100 text-gray-600", label: needStatus };
   const postedAt   = need.created_at
@@ -190,9 +228,82 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
 
     if (needStatus === "fulfilled") {
       return (
-        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-          <CheckCircle size={18} className="text-emerald-600 shrink-0" />
-          <p className="text-sm text-emerald-800 font-medium">This need has been fulfilled. Thank you!</p>
+        <div className="space-y-3">
+          <div className="flex flex-col gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-3">
+              <CheckCircle size={18} className="text-emerald-600 shrink-0" />
+              <p className="text-sm text-emerald-800 font-medium">This need has been fulfilled. Thank you!</p>
+            </div>
+            {user && user.user_id === need.posted_by && (claimedById || need.claimed_by_id) && (
+              <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between gap-2 flex-wrap">
+                <p className="text-xs text-emerald-800">
+                  Satisfied with the help from <strong className="font-semibold">{claimedByName || need.claimed_by_name || "the volunteer"}</strong>?
+                </p>
+                <button
+                  onClick={() => setShowRateVolunteer((v) => !v)}
+                  className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-xs"
+                >
+                  <Star size={13} className="fill-amber-300 text-amber-300" />
+                  {showRateVolunteer ? "Hide Rating" : "Rate & Review Volunteer"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {showRateVolunteer && (
+            <form onSubmit={handleRateVolunteer} className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+              <p className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                <Star size={13} className="text-amber-500 fill-amber-500" /> Rate Volunteer: {claimedByName || need.claimed_by_name}
+              </p>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setRatingStars(s)}
+                    className="focus:outline-none p-0.5"
+                    aria-label={`${s} star${s > 1 ? "s" : ""}`}
+                  >
+                    <Star
+                      size={22}
+                      className={s <= ratingStars ? "text-amber-400 fill-amber-400" : "text-slate-300 fill-slate-300"}
+                    />
+                  </button>
+                ))}
+              </div>
+              <textarea
+                value={ratingComment}
+                onChange={(e) => setRatingComment(e.target.value)}
+                placeholder="Share feedback on how the volunteer helped (optional)…"
+                maxLength={500}
+                rows={2}
+                className="w-full text-sm border border-amber-200 rounded-lg p-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300 placeholder-gray-400 resize-none"
+              />
+              {ratingError && <p className="text-xs text-red-600 font-medium">{ratingError}</p>}
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={ratingLoading || !ratingStars}
+                  className="text-xs font-semibold bg-amber-700 hover:bg-amber-600 text-white px-3.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {ratingLoading ? "Submitting…" : "Submit Review"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowRateVolunteer(false); setRatingError(""); }}
+                  className="text-xs text-amber-800 hover:underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+
+          {ratingSuccess && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-xs font-medium">
+              {ratingSuccess}
+            </div>
+          )}
         </div>
       );
     }
@@ -216,7 +327,13 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
         <div className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
           <span className="w-2.5 h-2.5 rounded-full bg-orange-400 shrink-0 animate-pulse" />
           <p className="text-sm text-orange-800 font-medium">
-            {claimedByName ? `${claimedByName} has claimed this need.` : "A volunteer has already claimed this need."}
+            {claimedByName ? (
+              <>
+                <strong>{claimedByName}</strong> has claimed this need.
+              </>
+            ) : (
+              "A volunteer has already claimed this need."
+            )}
           </p>
         </div>
       );
@@ -311,9 +428,19 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
               {statusMeta.label}
             </span>
             {(needStatus === "claimed" || needStatus === "fulfilled") && (claimedByName || need.claimed_by_name) && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/20 text-white border border-white/20">
-                Claimed by {claimedByName || need.claimed_by_name}
-              </span>
+              (claimedById || need.claimed_by_id) ? (
+                <Link
+                  href={`/users/${claimedById || need.claimed_by_id}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white border border-white/30 transition-colors shadow-xs group"
+                  title="View volunteer's profile & trust details"
+                >
+                  <span>Claimed by <strong className="underline decoration-white/40 group-hover:decoration-white">{claimedByName || need.claimed_by_name}</strong></span>
+                </Link>
+              ) : (
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/20 text-white border border-white/20">
+                  Claimed by {claimedByName || need.claimed_by_name}
+                </span>
+              )
             )}
             <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${u.badge}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${u.dot}`} />
@@ -410,7 +537,11 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
             )}
           </div>
 
-          <NeedComments needId={need.need_id} />
+          <NeedComments
+            needId={need.need_id}
+            postedBy={need.posted_by}
+            claimedById={claimedById || need.claimed_by_id}
+          />
 
           <div className="px-6 pb-6 pt-2 mt-auto">
             {renderAction()}

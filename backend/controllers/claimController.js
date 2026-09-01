@@ -54,6 +54,10 @@ export async function fulfillClaim(req, res) {
       [claim_id]
     );
     await db.query("UPDATE needs SET status = 'fulfilled' WHERE need_id = ?", [claim.need_id]);
+    await db.query(
+      "INSERT INTO logs_contribution (volunteer_id, need_id, fulfilled_at) VALUES (?, ?, NOW())",
+      [req.user.user_id, claim.need_id]
+    );
 
     res.json({ message: "Marked as fulfilled." });
   } catch (err) {

@@ -3,8 +3,8 @@ import { db } from "../db/index.js";
 export async function getImpactSummary(req, res) {
   try {
     const { startDate, endDate } = req.query;
-    const user_id = req.user.user_id;
-    const role = req.user.role;
+    const user_id = req.user?.user_id;
+    const role = req.user?.role;
 
     let dateFilter = "";
     let dateParams = [];

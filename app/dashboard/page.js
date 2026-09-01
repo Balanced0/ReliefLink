@@ -5,7 +5,8 @@ import {
   Droplet, Pill, Home, LifeBuoy, Package,
   RefreshCw, Filter, ChevronDown, X,
   AlertTriangle, Users, CheckCheck, Inbox,
-  PlusCircle, MapPin, Layers, Clock, Activity, ShieldCheck
+  PlusCircle, MapPin, Layers, Clock, Activity, ShieldCheck,
+  Bookmark, BookmarkCheck, Check, Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import NeedDetailModal from "../../components/NeedDetailModal";
@@ -43,7 +44,7 @@ const URGENCY_META = {
 };
 
 /* ─── NeedCard ────────────────────────────────────────────────── */
-function NeedCard({ need, onClick }) {
+function NeedCard({ need, isBookmarked, onClick }) {
   const u = URGENCY_META[need.urgency] || URGENCY_META.low;
 
   return (
@@ -70,9 +71,20 @@ function NeedCard({ need, onClick }) {
             );
           })}
         </div>
-        <span className={`shrink-0 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${u.badge}`}>
-          {u.label}
-        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          {isBookmarked && (
+            <span
+              title="In your bookmarked operating area"
+              className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200"
+            >
+              <BookmarkCheck size={10} />
+              <span>My Area</span>
+            </span>
+          )}
+          <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full ${u.badge}`}>
+            {u.label}
+          </span>
+        </div>
       </div>
 
       {/* Description */}
@@ -102,7 +114,28 @@ function NeedCard({ need, onClick }) {
 }
 
 /* ─── EmptyState ──────────────────────────────────────────────── */
-function EmptyState({ label }) {
+function EmptyState({ label, isMyAreasEmpty, onManageAreas }) {
+  if (isMyAreasEmpty) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center bg-white/60 rounded-2xl border border-dashed border-emerald-200 p-6">
+        <Bookmark size={32} className="text-emerald-400 mb-2" />
+        <p className="text-sm font-semibold text-slate-800">No Needs in Bookmarked Areas</p>
+        <p className="text-xs text-slate-500 mt-1 max-w-xs">
+          You have no active {label.toLowerCase()} dispatches in your saved areas.
+        </p>
+        {onManageAreas && (
+          <button
+            onClick={onManageAreas}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition-colors"
+          >
+            <BookmarkCheck size={12} />
+            Manage Operating Areas
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center bg-white/60 rounded-2xl border border-dashed border-slate-200">
       <Inbox size={32} className="text-slate-300 mb-2" />
@@ -152,7 +185,7 @@ const COLUMN_STYLES = {
   },
 };
 
-function StatusColumn({ statusKey, label, needs, onCardClick }) {
+function StatusColumn({ statusKey, label, needs, bookmarkedAreaIds, onCardClick, isMyAreasActive, onManageAreas }) {
   const s = COLUMN_STYLES[statusKey];
   const Icon = s.icon;
 
@@ -170,10 +203,15 @@ function StatusColumn({ statusKey, label, needs, onCardClick }) {
 
       <div className="flex flex-col gap-3 min-h-[200px]">
         {needs.length === 0 ? (
-          <EmptyState label={label} />
+          <EmptyState label={label} isMyAreasEmpty={isMyAreasActive} onManageAreas={onManageAreas} />
         ) : (
           needs.map((need) => (
-            <NeedCard key={need.need_id} need={need} onClick={onCardClick} />
+            <NeedCard
+              key={need.need_id}
+              need={need}
+              isBookmarked={bookmarkedAreaIds.includes(need.area_id)}
+              onClick={onCardClick}
+            />
           ))
         )}
       </div>
@@ -187,6 +225,13 @@ export default function DashboardPage() {
   const [areas, setAreas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [user, setUser] = useState(null);
+  const [bookmarkedAreaIds, setBookmarkedAreaIds] = useState([]);
+  const [myAreasOnly, setMyAreasOnly] = useState(false);
+  const [showAreaManager, setShowAreaManager] = useState(false);
+  const [bookmarkingAreaId, setBookmarkingAreaId] = useState(null);
+  const [areaSearch, setAreaSearch] = useState("");
 
   const [filterStatus, setFilterStatus]     = useState("");
   const [filterUrgency, setFilterUrgency]   = useState("");
@@ -219,6 +264,39 @@ export default function DashboardPage() {
     }
   }, [filterStatus, filterUrgency, filterCategory, filterAreaId]);
 
+  async function fetchBookmarks() {
+    try {
+      const res = await fetch("http://localhost:5000/api/bookmarks", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json().catch(() => []);
+        if (Array.isArray(data)) {
+          setBookmarkedAreaIds(data.map((b) => b.area_id));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/me", { credentials: "include" });
+        if (res.ok) {
+          const u = await res.json().catch(() => null);
+          setUser(u);
+          if (u?.role === "volunteer") {
+            fetchBookmarks();
+          }
+        } else {
+          setUser(false);
+        }
+      } catch {
+        setUser(false);
+      }
+    })();
+  }, []);
+
   useEffect(() => { fetchNeeds(); }, [fetchNeeds]);
 
   useEffect(() => {
@@ -228,11 +306,47 @@ export default function DashboardPage() {
       .catch(() => {});
   }, []);
 
-  const openNeeds      = needs.filter((n) => n.status === "open");
-  const claimedNeeds   = needs.filter((n) => n.status === "claimed");
-  const fulfilledNeeds = needs.filter((n) => n.status === "fulfilled");
+  async function handleToggleBookmark(areaId) {
+    const isBookmarked = bookmarkedAreaIds.includes(areaId);
+    setBookmarkingAreaId(areaId);
+    try {
+      if (isBookmarked) {
+        const res = await fetch(`http://localhost:5000/api/bookmarks/${areaId}`, {
+          method: "DELETE",
+          credentials: "include",
+        });
+        if (res.ok) {
+          setBookmarkedAreaIds((prev) => prev.filter((id) => id !== areaId));
+        }
+      } else {
+        const res = await fetch("http://localhost:5000/api/bookmarks", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ area_id: areaId }),
+        });
+        if (res.ok) {
+          setBookmarkedAreaIds((prev) => [...prev, areaId]);
+        }
+      }
+    } catch {
+      // ignore
+    } finally {
+      setBookmarkingAreaId(null);
+    }
+  }
 
-  const hasFilters = filterStatus || filterUrgency || filterCategory || filterAreaId;
+  const isVolunteer = user?.role === "volunteer";
+
+  const displayedNeeds = (isVolunteer && myAreasOnly)
+    ? needs.filter((n) => bookmarkedAreaIds.includes(n.area_id))
+    : needs;
+
+  const openNeeds      = displayedNeeds.filter((n) => n.status === "open");
+  const claimedNeeds   = displayedNeeds.filter((n) => n.status === "claimed");
+  const fulfilledNeeds = displayedNeeds.filter((n) => n.status === "fulfilled");
+
+  const hasFilters = filterStatus || filterUrgency || filterCategory || filterAreaId || myAreasOnly;
   const selectCls = "w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 transition-all appearance-none";
 
   const tabs = [
@@ -242,6 +356,11 @@ export default function DashboardPage() {
   ];
 
   const columnNeeds = { open: openNeeds, claimed: claimedNeeds, fulfilled: fulfilledNeeds };
+
+  const filteredAreasForManager = areas.filter((a) =>
+    a.area_name.toLowerCase().includes(areaSearch.toLowerCase()) ||
+    (a.district && a.district.toLowerCase().includes(areaSearch.toLowerCase()))
+  );
 
   return (
     <div className="flex flex-col flex-1 min-h-screen bg-slate-50 mesh-bg">
@@ -265,7 +384,16 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              {isVolunteer && (
+                <button
+                  onClick={() => setShowAreaManager(true)}
+                  className="flex items-center gap-2 text-xs font-bold text-emerald-200 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700/80 rounded-xl px-3.5 py-2.5 transition-all shadow-xs"
+                >
+                  <BookmarkCheck size={14} className="text-emerald-400" />
+                  <span>My Areas ({bookmarkedAreaIds.length})</span>
+                </button>
+              )}
               <Link
                 href="/needs/new"
                 className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95"
@@ -310,24 +438,51 @@ export default function DashboardPage() {
       {/* ── Filters bar ───────────────────────────────────────── */}
       <div className="bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-13">
-            <button
-              onClick={() => setShowFilters((p) => !p)}
-              className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${showFilters ? "text-emerald-700" : "text-slate-700 hover:text-slate-950"}`}
-            >
-              <Filter size={14} />
-              <span>Filter Feed</span>
-              {hasFilters && (
-                <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-900 text-white text-[10px] font-bold">
-                  {[filterStatus, filterUrgency, filterCategory, filterAreaId].filter(Boolean).length}
-                </span>
+          <div className="flex items-center justify-between h-13 flex-wrap gap-2 py-2 sm:py-0">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowFilters((p) => !p)}
+                className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors ${showFilters ? "text-emerald-700" : "text-slate-700 hover:text-slate-950"}`}
+              >
+                <Filter size={14} />
+                <span>Filter Feed</span>
+                {hasFilters && (
+                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-900 text-white text-[10px] font-bold">
+                    {[filterStatus, filterUrgency, filterCategory, filterAreaId, myAreasOnly].filter(Boolean).length}
+                  </span>
+                )}
+                <ChevronDown size={13} className={`transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`} />
+              </button>
+
+              {isVolunteer && (
+                <button
+                  onClick={() => setMyAreasOnly((v) => !v)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                    myAreasOnly
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  <BookmarkCheck size={13} />
+                  <span>My Areas View</span>
+                  {bookmarkedAreaIds.length > 0 && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${myAreasOnly ? "bg-emerald-800 text-emerald-100" : "bg-slate-200 text-slate-600"}`}>
+                      {bookmarkedAreaIds.length}
+                    </span>
+                  )}
+                </button>
               )}
-              <ChevronDown size={13} className={`transition-transform duration-200 ${showFilters ? "rotate-180" : ""}`} />
-            </button>
+            </div>
 
             {hasFilters && (
               <button
-                onClick={() => { setFilterStatus(""); setFilterUrgency(""); setFilterCategory(""); setFilterAreaId(""); }}
+                onClick={() => {
+                  setFilterStatus("");
+                  setFilterUrgency("");
+                  setFilterCategory("");
+                  setFilterAreaId("");
+                  setMyAreasOnly(false);
+                }}
                 className="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 transition-colors"
               >
                 <X size={12} /> Clear all filters
@@ -393,6 +548,21 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {isVolunteer && myAreasOnly && bookmarkedAreaIds.length === 0 && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-900 flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2.5">
+              <Bookmark className="text-amber-600 shrink-0" size={18} />
+              <span>You have not bookmarked any operating areas yet.</span>
+            </div>
+            <button
+              onClick={() => setShowAreaManager(true)}
+              className="bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Bookmark Operating Areas
+            </button>
+          </div>
+        )}
+
         {/* ── Mobile: tab switcher ─────────────────────────────── */}
         <div className="md:hidden">
           <div className="flex bg-white rounded-2xl p-1 shadow-xs border border-slate-200/80 mb-5">
@@ -421,7 +591,10 @@ export default function DashboardPage() {
               statusKey={activeTab}
               label={tabs.find((t) => t.key === activeTab)?.label}
               needs={columnNeeds[activeTab]}
+              bookmarkedAreaIds={bookmarkedAreaIds}
               onCardClick={setSelectedNeed}
+              isMyAreasActive={myAreasOnly}
+              onManageAreas={() => setShowAreaManager(true)}
             />
           )}
         </div>
@@ -446,14 +619,115 @@ export default function DashboardPage() {
                 statusKey={key}
                 label={label}
                 needs={data}
+                bookmarkedAreaIds={bookmarkedAreaIds}
                 onCardClick={setSelectedNeed}
+                isMyAreasActive={myAreasOnly}
+                onManageAreas={() => setShowAreaManager(true)}
               />
             ))
           )}
         </div>
       </div>
 
-      {/* ── Modal ─────────────────────────────────────────────── */}
+      {/* ── Operating Area Manager Modal ──────────────────────── */}
+      {showAreaManager && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-[2px]"
+          onClick={() => setShowAreaManager(false)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700">
+                  <BookmarkCheck size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Bookmark Operating Areas</h3>
+                  <p className="text-xs text-slate-500">Save zones you operate in to filter custom dispatches.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAreaManager(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <input
+              type="text"
+              placeholder="Search zones or districts…"
+              value={areaSearch}
+              onChange={(e) => setAreaSearch(e.target.value)}
+              className="w-full text-xs border border-slate-200 rounded-xl px-3 py-2 bg-slate-50 focus:outline-none focus:bg-white focus:ring-2 focus:ring-slate-900/20"
+            />
+
+            <div className="overflow-y-auto flex-1 space-y-2 pr-1">
+              {filteredAreasForManager.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-6">No areas found.</p>
+              ) : (
+                filteredAreasForManager.map((a) => {
+                  const isSaved = bookmarkedAreaIds.includes(a.area_id);
+                  const isPending = bookmarkingAreaId === a.area_id;
+
+                  return (
+                    <div
+                      key={a.area_id}
+                      className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-slate-200 bg-slate-50/50 hover:bg-white transition-all"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{a.area_name}</p>
+                        <p className="text-xs text-slate-400">{a.district || "Designated Sector"}</p>
+                      </div>
+
+                      <button
+                        onClick={() => handleToggleBookmark(a.area_id)}
+                        disabled={isPending}
+                        className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl border transition-all ${
+                          isSaved
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300 hover:bg-emerald-100"
+                            : "bg-white text-slate-700 border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        {isPending ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : isSaved ? (
+                          <>
+                            <Check size={13} className="text-emerald-600" />
+                            <span>Bookmarked</span>
+                          </>
+                        ) : (
+                          <>
+                            <Bookmark size={13} />
+                            <span>Bookmark</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs text-slate-500 font-medium">
+                {bookmarkedAreaIds.length} area{bookmarkedAreaIds.length !== 1 ? "s" : ""} saved
+              </span>
+              <button
+                onClick={() => setShowAreaManager(false)}
+                className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Need Detail Modal ──────────────────────────────────── */}
       {selectedNeed && (
         <NeedDetailModal
           need={selectedNeed}

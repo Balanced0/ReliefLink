@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   TrendingUp, Users, BarChart2, Calendar,
-  Loader2, LogIn, Trophy,
+  Loader2, LogIn, Trophy, Sparkles, CheckCircle2,
+  Building2,
 } from "lucide-react";
 
 const CATEGORY_LABELS = {
@@ -23,11 +24,43 @@ const CATEGORY_COLORS = {
   other:    "bg-slate-400",
 };
 
+function CategoryBars({ items }) {
+  if (!items || items.length === 0) {
+    return <p className="text-sm text-slate-400 italic">No category data recorded yet.</p>;
+  }
+  const max = Math.max(...items.map((i) => Number(i.count) || 0));
+  return (
+    <div className="space-y-2.5">
+      {items.map((item) => {
+        const pct = max > 0 ? Math.round((Number(item.count) / max) * 100) : 0;
+        const color = CATEGORY_COLORS[item.category] || "bg-slate-400";
+        return (
+          <div key={item.category}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-slate-700">
+                {CATEGORY_LABELS[item.category] || item.category}
+              </span>
+              <span className="text-xs font-semibold text-slate-900">
+                {item.count} fulfilled
+              </span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full ${color} transition-all duration-500`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ImpactPage() {
   const [stats, setStats]       = useState(null);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState("");
-  const [unauthed, setUnauthed] = useState(false);
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate]     = useState("");
@@ -35,7 +68,6 @@ export default function ImpactPage() {
   async function fetchStats(start, end) {
     setLoading(true);
     setError("");
-    setUnauthed(false);
     try {
       const params = new URLSearchParams();
       if (start) params.set("startDate", start);
@@ -45,19 +77,34 @@ export default function ImpactPage() {
         credentials: "include",
       });
 
-      if (res.status === 401) {
-        setUnauthed(true);
-        return;
-      }
-
-      if (!res.ok) {
+      if (res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data.error || "Could not load impact data.");
+        setStats(data);
         return;
       }
 
-      const data = await res.json().catch(() => ({}));
-      setStats(data);
+      // If unauthenticated or stats restricted, provide public fallback
+      const needsRes = await fetch("http://localhost:5000/api/needs");
+      if (needsRes.ok) {
+        const allNeeds = await needsRes.json().catch(() => []);
+        const fulfilledNeeds = Array.isArray(allNeeds) ? allNeeds.filter((n) => n.status === "fulfilled") : [];
+        const catCount = {};
+        fulfilledNeeds.forEach((n) => {
+          (n.categories || []).forEach((c) => {
+            catCount[c] = (catCount[c] || 0) + 1;
+          });
+        });
+        const needs_by_category = Object.entries(catCount).map(([category, count]) => ({ category, count }));
+        setStats({
+          total_fulfilled: fulfilledNeeds.length,
+          most_active_volunteers: [],
+          needs_by_category,
+          isPublicView: res.status === 401,
+        });
+        return;
+      }
+
+      setError("Could not load impact data.");
     } catch {
       setError("Could not reach the server.");
     } finally {
@@ -69,73 +116,18 @@ export default function ImpactPage() {
     fetchStats(startDate, endDate);
   }, [startDate, endDate]);
 
-  if (!loading && unauthed) {
-    return (
-      <div className="flex flex-col flex-1 items-center justify-center min-h-[65vh] px-4">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-4">
-          <LogIn size={22} className="text-blue-600" />
-        </div>
-        <h1 className="text-lg font-semibold text-slate-800 mb-1">
-          Sign in to view Impact Summary
-        </h1>
-        <p className="text-sm text-slate-500 mb-5 text-center max-w-xs">
-          This page is only available to logged-in users.
-        </p>
-        <Link
-          href="/login"
-          className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-        >
-          <LogIn size={15} /> Go to Login
-        </Link>
-      </div>
-    );
-  }
-
-  function CategoryBars({ items }) {
-    if (!items || items.length === 0) {
-      return <p className="text-sm text-slate-400 italic">No data.</p>;
-    }
-    const max = Math.max(...items.map((i) => Number(i.count) || 0));
-    return (
-      <div className="space-y-2.5">
-        {items.map((item) => {
-          const pct = max > 0 ? Math.round((Number(item.count) / max) * 100) : 0;
-          const color = CATEGORY_COLORS[item.category] || "bg-slate-400";
-          return (
-            <div key={item.category}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-medium text-slate-700">
-                  {CATEGORY_LABELS[item.category] || item.category}
-                </span>
-                <span className="text-xs font-semibold text-slate-900">
-                  {item.count}
-                </span>
-              </div>
-              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${color} transition-all duration-500`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
-              <TrendingUp size={18} className="text-blue-600" />
+            <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <TrendingUp size={18} className="text-emerald-700" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Impact Summary</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Platform Impact &amp; Transparency</h1>
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Platform-wide fulfillment stats — filter by date range or see all-time.
+            Real-time fulfillment metrics, category distributions, and community response achievements.
           </p>
 
           <div className="mt-5 flex flex-wrap gap-3 items-end">
@@ -196,7 +188,16 @@ export default function ImpactPage() {
 
         {!loading && !error && stats && (
           <div className="space-y-6">
-            <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-7 text-white">
+            {stats.isPublicView && (
+              <div className="p-3.5 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs flex items-center justify-between gap-3 flex-wrap">
+                <span>Displaying public verified relief metrics. Log in to view detailed volunteer leadership ranks.</span>
+                <Link href="/login" className="font-semibold underline hover:text-blue-950">
+                  Log in →
+                </Link>
+              </div>
+            )}
+
+            <div className="bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-2xl p-7 text-white shadow-md">
               <p className="text-sm font-medium text-emerald-100/80 mb-1">
                 Total Needs Fulfilled
               </p>
@@ -213,12 +214,12 @@ export default function ImpactPage() {
                 </p>
               )}
               {!startDate && !endDate && (
-                <p className="text-xs text-emerald-100/60 mt-2">All time</p>
+                <p className="text-xs text-emerald-100/60 mt-2">All time platform-wide</p>
               )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-white border border-slate-100 rounded-2xl p-6">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <div className="flex items-center gap-2 mb-4">
                   <Trophy size={16} className="text-amber-500" />
                   <h2 className="text-sm font-semibold text-slate-800">
@@ -228,7 +229,11 @@ export default function ImpactPage() {
 
                 {(!stats.most_active_volunteers ||
                   stats.most_active_volunteers.length === 0) ? (
-                  <p className="text-sm text-slate-400 italic">No data.</p>
+                  <div className="text-center py-8">
+                    <Users size={24} className="text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm text-slate-500 font-medium">Volunteers are actively dispatching aid.</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Top contributors are ranked upon verified deliveries.</p>
+                  </div>
                 ) : (
                   <ol className="space-y-2.5">
                     {stats.most_active_volunteers.map((v, idx) => (
@@ -253,7 +258,7 @@ export default function ImpactPage() {
                           {v.name}
                         </Link>
                         <span className="shrink-0 text-xs font-semibold text-slate-500 bg-slate-50 px-2 py-0.5 rounded-full">
-                          {v.contributions}
+                          {v.contributions} delivered
                         </span>
                       </li>
                     ))}
@@ -261,7 +266,7 @@ export default function ImpactPage() {
                 )}
               </div>
 
-              <div className="bg-white border border-slate-100 rounded-2xl p-6">
+              <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs">
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart2 size={16} className="text-blue-500" />
                   <h2 className="text-sm font-semibold text-slate-800">
