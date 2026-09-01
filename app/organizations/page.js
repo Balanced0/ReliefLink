@@ -21,6 +21,7 @@ export default function OrganizationsPage() {
   const [joinState, setJoinState] = useState({});
 
   const [pendingState, setPendingState] = useState({});
+  const [membersState, setMembersState] = useState({});
   const [user, setUser] = useState(null);
 
   async function fetchOrgs() {
@@ -201,6 +202,9 @@ export default function OrganizationsPage() {
             requests: (prev[orgId]?.requests || []).filter((r) => r.user_id !== userId),
           },
         }));
+        if (membersState[orgId]?.open) {
+          fetchMembers(orgId);
+        }
       }
     } catch {
       setPendingState((prev) => ({
@@ -210,6 +214,45 @@ export default function OrganizationsPage() {
           actionState: { ...prev[orgId]?.actionState, [userId]: { loading: false, error: "Could not reach the server." } },
         },
       }));
+    }
+  }
+
+  async function fetchMembers(orgId) {
+    setMembersState((prev) => ({
+      ...prev,
+      [orgId]: { ...prev[orgId], open: true, loading: true, error: "", members: prev[orgId]?.members || [] },
+    }));
+    try {
+      const res = await fetch(
+        `http://localhost:5000/api/organizations/${orgId}/members`,
+        { credentials: "include" }
+      );
+      const data = await res.json().catch(() => []);
+      if (!res.ok) {
+        setMembersState((prev) => ({
+          ...prev,
+          [orgId]: { ...prev[orgId], loading: false, error: data.error || "Could not load members." },
+        }));
+        return;
+      }
+      setMembersState((prev) => ({
+        ...prev,
+        [orgId]: { ...prev[orgId], loading: false, members: Array.isArray(data) ? data : [] },
+      }));
+    } catch {
+      setMembersState((prev) => ({
+        ...prev,
+        [orgId]: { ...prev[orgId], loading: false, error: "Could not reach the server." },
+      }));
+    }
+  }
+
+  function toggleMembers(orgId) {
+    const current = membersState[orgId];
+    if (current?.open) {
+      setMembersState((prev) => ({ ...prev, [orgId]: { ...prev[orgId], open: false } }));
+    } else {
+      fetchMembers(orgId);
     }
   }
 
@@ -349,6 +392,7 @@ export default function OrganizationsPage() {
           <div className="space-y-3">
             {orgs.map((org) => {
               const js = joinState[org.org_id] || {};
+              const isOwner = Boolean(user && user.user_id === org.owner_user_id);
               return (
                 <div
                   key={org.org_id}
@@ -383,7 +427,11 @@ export default function OrganizationsPage() {
                     </div>
 
                     <div className="shrink-0 flex flex-col items-end gap-2">
-                      {user?.role === "affected" ? (
+                      {isOwner ? (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          Owner
+                        </span>
+                      ) : user?.role === "affected" ? (
                         <p className="text-xs text-slate-500 italic">
                           Organizations are available to volunteers only.
                         </p>
@@ -403,6 +451,18 @@ export default function OrganizationsPage() {
                               {js.loading ? "Requesting…" : "Request to Join"}
                             </button>
                           )}
+                        </>
+                      )}
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => toggleMembers(org.org_id)}
+                          className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 transition-colors"
+                        >
+                          <Users size={13} />
+                          {membersState[org.org_id]?.open ? "Hide Members" : "View Members"}
+                        </button>
+                        {isOwner && (
                           <button
                             onClick={() => togglePending(org.org_id)}
                             className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-700 transition-colors"
@@ -410,13 +470,55 @@ export default function OrganizationsPage() {
                             <ClipboardList size={13} />
                             {pendingState[org.org_id]?.open ? "Hide requests" : "Manage Requests"}
                           </button>
-                        </>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {pendingState[org.org_id]?.open && (
+                  {membersState[org.org_id]?.open && (
                     <div className="mt-3 pt-3 border-t border-slate-100">
+                      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                        Approved Members
+                      </h3>
+                      {membersState[org.org_id]?.loading && (
+                        <div className="flex items-center gap-2 py-2">
+                          <Loader2 size={13} className="animate-spin text-slate-400" />
+                          <span className="text-xs text-slate-400">Loading members…</span>
+                        </div>
+                      )}
+                      {membersState[org.org_id]?.error && (
+                        <p className="text-xs text-red-500">{membersState[org.org_id].error}</p>
+                      )}
+                      {!membersState[org.org_id]?.loading &&
+                        !membersState[org.org_id]?.error &&
+                        (membersState[org.org_id]?.members || []).length === 0 && (
+                          <p className="text-xs text-slate-400 italic">No members found.</p>
+                        )}
+                      {!membersState[org.org_id]?.loading &&
+                        (membersState[org.org_id]?.members || []).map((m) => (
+                          <div
+                            key={m.user_id}
+                            className="flex items-center justify-between py-1.5 border-b border-slate-50 last:border-0"
+                          >
+                            <span className="text-sm font-medium text-slate-800">{m.name}</span>
+                            <span className="text-xs text-slate-400">
+                              Joined{" "}
+                              {m.requested_at
+                                ? new Date(m.requested_at).toLocaleDateString("en-GB", {
+                                    day: "numeric", month: "short", year: "numeric",
+                                  })
+                                : "—"}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {isOwner && pendingState[org.org_id]?.open && (
+                    <div className="mt-3 pt-3 border-t border-slate-100">
+                      <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                        Pending Requests
+                      </h3>
                       {pendingState[org.org_id]?.loading && (
                         <div className="flex items-center gap-2 py-2">
                           <Loader2 size={13} className="animate-spin text-slate-400" />

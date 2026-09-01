@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   User, Star, CheckCircle, MapPin, Calendar,
-  Loader2, ArrowLeft, Layers,
+  Loader2, ArrowLeft, Layers, Building2,
 } from "lucide-react";
 
 const CATEGORY_LABELS = {
@@ -229,6 +229,23 @@ export default function UserProfilePage() {
               {profile.account_status}
             </span>
           </div>
+
+          {profile.organizations && profile.organizations.length > 0 && (
+            <div className="mt-3.5 flex items-center gap-2 text-xs text-slate-600 flex-wrap">
+              <span className="font-semibold text-slate-700 flex items-center gap-1">
+                <Building2 size={13} className="text-slate-400" />
+                Member of:
+              </span>
+              {profile.organizations.map((org) => (
+                <span
+                  key={org.org_id}
+                  className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-medium"
+                >
+                  {org.org_name}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

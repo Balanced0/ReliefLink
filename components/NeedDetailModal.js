@@ -64,27 +64,12 @@ function MetaChip({ icon: Icon, label, value }) {
   );
 }
 
-const LS_KEY = "rl_my_claims";
-
-function readClaims() {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}" ); }
-  catch { return {}; }
-}
-function saveClaim(needId, claimId) {
-  const claims = readClaims();
-  claims[needId] = claimId;
-  localStorage.setItem(LS_KEY, JSON.stringify(claims));
-}
-function removeClaim(needId) {
-  const claims = readClaims();
-  delete claims[needId];
-  localStorage.setItem(LS_KEY, JSON.stringify(claims));
-}
-
 export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
   const [user, setUser]               = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [claimId, setClaimId]         = useState(() => readClaims()[need.need_id] ?? null);
+  const [actionClaimed, setActionClaimed] = useState(false);
+  const [actionFulfilled, setActionFulfilled] = useState(false);
+  const [newClaimId, setNewClaimId]   = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError]     = useState("");
   const [actionSuccess, setActionSuccess] = useState("");
@@ -94,6 +79,11 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportMsg, setReportMsg]       = useState("");
   const [reportErr, setReportErr]       = useState("");
+
+  const needStatus = actionFulfilled ? "fulfilled" : actionClaimed ? "claimed" : need.status;
+  const claimedById = actionClaimed ? user?.user_id : need.claimed_by_id;
+  const claimedByName = actionClaimed ? user?.name : need.claimed_by_name;
+  const claimId = newClaimId || need.claim_id;
 
   useEffect(() => {
     (async () => {
@@ -124,8 +114,8 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
       if (!res.ok) {
         setActionError(data.error || "Could not claim this need.");
       } else {
-        setClaimId(data.claim_id);
-        saveClaim(need.need_id, data.claim_id);
+        setNewClaimId(data.claim_id);
+        setActionClaimed(true);
         setActionSuccess("You've claimed this need! You can mark it fulfilled any time.");
         if (onActionSuccess) onActionSuccess();
       }
@@ -138,15 +128,16 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
 
   async function handleFulfill() {
     setActionError(""); setActionSuccess(""); setActionLoading(true);
+    const activeClaimId = claimId || need.claim_id;
     try {
-      const res  = await fetch(`http://localhost:5000/api/claims/${claimId}/fulfill`, {
+      const res  = await fetch(`http://localhost:5000/api/claims/${activeClaimId}/fulfill`, {
         method: "PATCH", credentials: "include",
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setActionError(data.error || "Could not mark as fulfilled.");
       } else {
-        removeClaim(need.need_id);
+        setActionFulfilled(true);
         setActionSuccess("Marked as fulfilled — thank you for making a difference!");
         if (onActionSuccess) onActionSuccess();
       }
@@ -187,7 +178,7 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
   }
 
   const u          = URGENCY_META[need.urgency] || URGENCY_META.low;
-  const statusMeta = STATUS_META[need.status]   || { pill: "bg-gray-100 text-gray-600", label: need.status };
+  const statusMeta = STATUS_META[needStatus]   || { pill: "bg-gray-100 text-gray-600", label: needStatus };
   const postedAt   = need.created_at
     ? new Date(need.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
     : null;
@@ -197,20 +188,41 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
       return <div className="h-11 rounded-xl bg-gray-100 animate-pulse" />;
     }
 
-    if (claimId !== null && !(actionSuccess && actionSuccess.includes("fulfilled"))) {
+    if (needStatus === "fulfilled") {
       return (
-        <button
-          onClick={handleFulfill}
-          disabled={actionLoading}
-          className="w-full flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-white rounded-xl py-3 font-semibold text-sm shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:opacity-50"
-        >
-          <CheckCircle size={16} />
-          {actionLoading ? "Marking…" : "Mark as Fulfilled"}
-        </button>
+        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+          <CheckCircle size={18} className="text-emerald-600 shrink-0" />
+          <p className="text-sm text-emerald-800 font-medium">This need has been fulfilled. Thank you!</p>
+        </div>
       );
     }
 
-    if (need.status === "open") {
+    if (needStatus === "claimed") {
+      const isClaimedByMe = user && (claimedById === user.user_id);
+      if (isClaimedByMe) {
+        return (
+          <button
+            onClick={handleFulfill}
+            disabled={actionLoading}
+            className="w-full flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-600 active:bg-emerald-800 text-white rounded-xl py-3 font-semibold text-sm shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 disabled:opacity-50"
+          >
+            <CheckCircle size={16} />
+            {actionLoading ? "Marking…" : "Mark as Fulfilled"}
+          </button>
+        );
+      }
+
+      return (
+        <div className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-orange-400 shrink-0 animate-pulse" />
+          <p className="text-sm text-orange-800 font-medium">
+            {claimedByName ? `${claimedByName} has claimed this need.` : "A volunteer has already claimed this need."}
+          </p>
+        </div>
+      );
+    }
+
+    if (needStatus === "open") {
       if (user) {
         if (user.role === "affected") {
           return (
@@ -259,24 +271,6 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
       );
     }
 
-    if (need.status === "claimed") {
-      return (
-        <div className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-orange-400 shrink-0 animate-pulse" />
-          <p className="text-sm text-orange-800 font-medium">A volunteer has already claimed this need.</p>
-        </div>
-      );
-    }
-
-    if (need.status === "fulfilled") {
-      return (
-        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-          <CheckCircle size={18} className="text-emerald-600 shrink-0" />
-          <p className="text-sm text-emerald-800 font-medium">This need has been fulfilled. Thank you!</p>
-        </div>
-      );
-    }
-
     return null;
   }
 
@@ -316,6 +310,11 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
             <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${statusMeta.pill}`}>
               {statusMeta.label}
             </span>
+            {(needStatus === "claimed" || needStatus === "fulfilled") && (claimedByName || need.claimed_by_name) && (
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/20 text-white border border-white/20">
+                Claimed by {claimedByName || need.claimed_by_name}
+              </span>
+            )}
             <span className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${u.badge}`}>
               <span className={`w-1.5 h-1.5 rounded-full ${u.dot}`} />
               {u.label} Urgency
