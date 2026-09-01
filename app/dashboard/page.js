@@ -394,13 +394,15 @@ export default function DashboardPage() {
                   <span>My Areas ({bookmarkedAreaIds.length})</span>
                 </button>
               )}
-              <Link
-                href="/needs/new"
-                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95"
-              >
-                <PlusCircle size={15} />
-                <span>Post a Need</span>
-              </Link>
+              {!isVolunteer && (
+                <Link
+                  href="/needs/new"
+                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95"
+                >
+                  <PlusCircle size={15} />
+                  <span>Post a Need</span>
+                </Link>
+              )}
               <button
                 onClick={fetchNeeds}
                 disabled={loading}

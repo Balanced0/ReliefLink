@@ -4,6 +4,12 @@ const VALID_CATEGORIES = ["food", "medicine", "shelter", "rescue", "other"];
 // Feature 1: Need Posting System
 export async function createNeed(req, res) {
   try {
+    if (req.user?.role === "volunteer") {
+      return res.status(403).json({
+        error: "Volunteers cannot post needs. Only affected users or administrators can create requests.",
+      });
+    }
+
     const { categories, area_id, urgency, description, quantity } = req.body;
 
     if (!categories || categories.length === 0 || !area_id || !description) {

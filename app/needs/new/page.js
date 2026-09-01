@@ -54,12 +54,35 @@ export default function PostNeedPage() {
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState("");
 
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
   const [areas, setAreas] = useState([]);
   const [areasLoading, setAreasLoading] = useState(true);
   const [areasError, setAreasError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/auth/me", {
+          credentials: "include",
+        });
+        if (res.ok) {
+          const u = await res.json().catch(() => null);
+          setUser(u);
+        } else {
+          setUser(false);
+        }
+      } catch {
+        setUser(false);
+      } finally {
+        setAuthLoading(false);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     async function loadAreas() {
@@ -86,6 +109,11 @@ export default function PostNeedPage() {
     e.preventDefault();
     setError("");
     setSuccess(false);
+
+    if (user?.role === "volunteer") {
+      setError("Volunteers cannot post needs. Only affected individuals or administrators can broadcast requests.");
+      return;
+    }
 
     if (categories.length === 0) {
       setError("Please select at least one category.");
@@ -128,6 +156,33 @@ export default function PostNeedPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!authLoading && user?.role === "volunteer") {
+    return (
+      <div className="flex flex-col flex-1 bg-slate-50 mesh-bg min-h-screen px-4 py-16 items-center justify-center">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl max-w-lg w-full p-8 text-center space-y-4">
+          <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
+            <AlertTriangle size={28} />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900">Volunteers Cannot Post Needs</h1>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            Your account is registered as a <span className="font-bold text-emerald-700">Volunteer</span> to claim, coordinate, and fulfill incoming relief missions.
+          </p>
+          <p className="text-xs text-slate-500">
+            If you are an affected individual in need of emergency assistance, please log in with an affected account.
+          </p>
+          <div className="pt-3 flex flex-col sm:flex-row gap-2.5 justify-center">
+            <Link
+              href="/dashboard"
+              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-5 py-3 rounded-xl transition-colors"
+            >
+              Browse Active Radar Needs
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
