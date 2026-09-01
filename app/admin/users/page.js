@@ -285,145 +285,199 @@ export default function AdminUsersPage() {
               </p>
             </div>
           ) : (
-            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/70 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                      <th className="py-3.5 px-5">User</th>
-                      <th className="py-3.5 px-4">Role</th>
-                      <th className="py-3.5 px-4">Account Type</th>
-                      <th className="py-3.5 px-4">Status</th>
-                      <th className="py-3.5 px-4">Joined Date</th>
-                      <th className="py-3.5 px-5 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
-                    {filteredUsers.map((u) => {
-                      const isProcessing = processingId === u.user_id;
-                      const isActive = u.account_status === "active";
-                      const rowErrMsg = rowError[u.user_id];
-                      const isSelf = currentUserId !== null && u.user_id === currentUserId;
+            <div>
+              {/* ─── Mobile Card View (hidden md+) ─── */}
+              <div className="space-y-3 md:hidden">
+                {filteredUsers.map((u) => {
+                  const isProcessing = processingId === u.user_id;
+                  const isActive = u.account_status === "active";
+                  const rowErrMsg = rowError[u.user_id];
+                  const isSelf = currentUserId !== null && u.user_id === currentUserId;
 
-                      return (
-                        <tr key={u.user_id} className="hover:bg-slate-50/50 transition-colors">
-                          {/* User Name & Email */}
-                          <td className="py-4 px-5">
-                            <div className="flex flex-col">
-                              <span className="font-bold text-slate-900 flex items-center gap-2">
-                                {u.name || `User #${u.user_id}`}
-                                {isSelf && (
-                                  <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
-                                    You
+                  return (
+                    <div key={u.user_id} className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 space-y-3">
+                      {/* Name + badges row */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-bold text-slate-900 text-sm">{u.name || `User #${u.user_id}`}</span>
+                            {isSelf && (
+                              <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">You</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-400">
+                            <Mail size={11} />
+                            <span className="truncate">{u.email}</span>
+                          </div>
+                        </div>
+                        {/* Status badge */}
+                        {isActive ? (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active
+                          </span>
+                        ) : (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Suspended
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Meta row */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold uppercase tracking-wider ${
+                          u.role === "admin"
+                            ? "bg-amber-50 text-amber-800 border border-amber-200"
+                            : u.role === "volunteer"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-blue-50 text-blue-700 border border-blue-200"
+                        }`}>
+                          {u.role || "user"}
+                        </span>
+                        <span className="text-xs text-slate-500 capitalize font-medium bg-slate-100 px-2 py-0.5 rounded-md">
+                          {u.account_type || "individual"}
+                        </span>
+                        {u.created_at && (
+                          <span className="flex items-center gap-1 text-xs text-slate-400">
+                            <Calendar size={11} />
+                            {new Date(u.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Row error */}
+                      {rowErrMsg && (
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 bg-rose-50 px-2.5 py-1.5 rounded-lg border border-rose-200">
+                          <AlertTriangle size={12} className="shrink-0" />
+                          {rowErrMsg}
+                        </div>
+                      )}
+
+                      {/* Action */}
+                      <div className="pt-1 border-t border-slate-100">
+                        {isSelf ? (
+                          <button disabled className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-60">
+                            <UserX size={13} /><span>Cannot modify own account</span>
+                          </button>
+                        ) : isActive ? (
+                          <button
+                            type="button"
+                            disabled={isProcessing}
+                            onClick={() => handleToggleStatus(u.user_id, u.account_status)}
+                            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors disabled:opacity-50"
+                          >
+                            {isProcessing ? <Loader2 size={13} className="animate-spin" /> : <UserX size={13} />}
+                            <span>Suspend Account</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={isProcessing}
+                            onClick={() => handleToggleStatus(u.user_id, u.account_status)}
+                            className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors disabled:opacity-50"
+                          >
+                            {isProcessing ? <Loader2 size={13} className="animate-spin" /> : <UserCheck size={13} />}
+                            <span>Reactivate Account</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ─── Desktop Table View (hidden below md) ─── */}
+              <div className="hidden md:block bg-white rounded-3xl border border-slate-200/90 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/70 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        <th className="py-3.5 px-5">User</th>
+                        <th className="py-3.5 px-4">Role</th>
+                        <th className="py-3.5 px-4">Account Type</th>
+                        <th className="py-3.5 px-4">Status</th>
+                        <th className="py-3.5 px-4">Joined Date</th>
+                        <th className="py-3.5 px-5 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-sm">
+                      {filteredUsers.map((u) => {
+                        const isProcessing = processingId === u.user_id;
+                        const isActive = u.account_status === "active";
+                        const rowErrMsg = rowError[u.user_id];
+                        const isSelf = currentUserId !== null && u.user_id === currentUserId;
+
+                        return (
+                          <tr key={u.user_id} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-4 px-5">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-900 flex items-center gap-2">
+                                  {u.name || `User #${u.user_id}`}
+                                  {isSelf && (
+                                    <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">You</span>
+                                  )}
+                                </span>
+                                <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                                  <Mail size={11} />{u.email}
+                                </span>
+                                {rowErrMsg && (
+                                  <span className="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
+                                    <AlertTriangle size={12} className="shrink-0" />{rowErrMsg}
                                   </span>
                                 )}
-                              </span>
-                              <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
-                                <Mail size={11} />
-                                {u.email}
-                              </span>
-                              {rowErrMsg && (
-                                <span className="text-xs font-semibold text-rose-600 mt-1.5 flex items-center gap-1 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                                  <AlertTriangle size={12} className="shrink-0" />
-                                  {rowErrMsg}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 whitespace-nowrap">
+                              <span className={`inline-block px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider ${
+                                u.role === "admin" ? "bg-amber-50 text-amber-800 border border-amber-200"
+                                  : u.role === "volunteer" ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : "bg-blue-50 text-blue-700 border border-blue-200"
+                              }`}>{u.role || "user"}</span>
+                            </td>
+                            <td className="py-4 px-4 whitespace-nowrap capitalize text-xs text-slate-600 font-medium">
+                              {u.account_type || "individual"}
+                            </td>
+                            <td className="py-4 px-4 whitespace-nowrap">
+                              {isActive ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Suspended
                                 </span>
                               )}
-                            </div>
-                          </td>
-
-                          {/* Role */}
-                          <td className="py-4 px-4 whitespace-nowrap">
-                            <span className={`inline-block px-2.5 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider ${
-                              u.role === "admin"
-                                ? "bg-amber-50 text-amber-800 border border-amber-200"
-                                : u.role === "volunteer"
-                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                                : "bg-blue-50 text-blue-700 border border-blue-200"
-                            }`}>
-                              {u.role || "user"}
-                            </span>
-                          </td>
-
-                          {/* Account Type */}
-                          <td className="py-4 px-4 whitespace-nowrap capitalize text-xs text-slate-600 font-medium">
-                            {u.account_type || "individual"}
-                          </td>
-
-                          {/* Account Status Badge */}
-                          <td className="py-4 px-4 whitespace-nowrap">
-                            {isActive ? (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                Active
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                Suspended
-                              </span>
-                            )}
-                          </td>
-
-                          {/* Joined Date */}
-                          <td className="py-4 px-4 whitespace-nowrap text-xs text-slate-500">
-                            {u.created_at ? (
-                              new Date(u.created_at).toLocaleDateString(undefined, {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-
-                          {/* Action Button */}
-                          <td className="py-4 px-5 whitespace-nowrap text-right">
-                            {isSelf ? (
-                              <button
-                                type="button"
-                                disabled={true}
-                                title="You cannot change your own account status"
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-60"
-                              >
-                                <UserX size={12} />
-                                <span>Suspend</span>
-                              </button>
-                            ) : isActive ? (
-                              <button
-                                type="button"
-                                disabled={isProcessing}
-                                onClick={() => handleToggleStatus(u.user_id, u.account_status)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors disabled:opacity-50"
-                              >
-                                {isProcessing ? (
-                                  <Loader2 size={12} className="animate-spin" />
-                                ) : (
-                                  <UserX size={12} />
-                                )}
-                                <span>Suspend</span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                disabled={isProcessing}
-                                onClick={() => handleToggleStatus(u.user_id, u.account_status)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors disabled:opacity-50"
-                              >
-                                {isProcessing ? (
-                                  <Loader2 size={12} className="animate-spin" />
-                                ) : (
-                                  <UserCheck size={12} />
-                                )}
-                                <span>Reactivate</span>
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            </td>
+                            <td className="py-4 px-4 whitespace-nowrap text-xs text-slate-500">
+                              {u.created_at ? new Date(u.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                            </td>
+                            <td className="py-4 px-5 whitespace-nowrap text-right">
+                              {isSelf ? (
+                                <button type="button" disabled title="You cannot change your own account status"
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-400 bg-slate-100 border border-slate-200 cursor-not-allowed opacity-60">
+                                  <UserX size={12} /><span>Suspend</span>
+                                </button>
+                              ) : isActive ? (
+                                <button type="button" disabled={isProcessing}
+                                  onClick={() => handleToggleStatus(u.user_id, u.account_status)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors disabled:opacity-50">
+                                  {isProcessing ? <Loader2 size={12} className="animate-spin" /> : <UserX size={12} />}
+                                  <span>Suspend</span>
+                                </button>
+                              ) : (
+                                <button type="button" disabled={isProcessing}
+                                  onClick={() => handleToggleStatus(u.user_id, u.account_status)}
+                                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors disabled:opacity-50">
+                                  {isProcessing ? <Loader2 size={12} className="animate-spin" /> : <UserCheck size={12} />}
+                                  <span>Reactivate</span>
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

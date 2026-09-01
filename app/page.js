@@ -6,8 +6,9 @@ import {
   ShieldCheck, Droplet, Pill, Home as HomeIcon, LifeBuoy, Package,
   ArrowRight, Users, HeartHandshake, MapPin, Sparkles, CheckCircle2,
   Clock, TrendingUp, Building2, Flame, AlertTriangle, ArrowUpRight,
-  ExternalLink, ChevronRight, Activity
+  ExternalLink, ChevronRight, Activity, Layers
 } from "lucide-react";
+
 
 const CATEGORY_ITEMS = [
   {
@@ -317,7 +318,7 @@ export default function HomePage() {
           <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-7 flex flex-col justify-between shadow-xl">
             <div>
               <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center mb-5 shadow-lg shadow-emerald-500/30">
-                <Sparkles size={22} className="text-white" />
+                <Layers size={22} className="text-white" />
               </div>
               <h3 className="text-lg font-bold text-white mb-2">
                 Need Custom Triage?

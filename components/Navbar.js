@@ -6,7 +6,8 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   ShieldCheck, User, LogOut, PlusCircle, Star,
   ChevronDown, Building2, HeartHandshake, LogIn, UserPlus,
-  Compass, BarChart3, AlertTriangle, Check
+  Compass, BarChart3, AlertTriangle, Check, Menu, X as XIcon,
+  LayoutDashboard, Activity, Info, Users as UsersIcon,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -17,9 +18,11 @@ export default function Navbar() {
   const [profile, setProfile] = useState(null);   // full user object or null
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -27,10 +30,18 @@ export default function Navbar() {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target)) {
+        setMobileMenuOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   // Fetch current user auth on mount & on route change
   const checkAuth = async () => {
@@ -82,6 +93,7 @@ export default function Navbar() {
       setAuthData(false);
       setProfile(null);
       setDropdownOpen(false);
+      setMobileMenuOpen(false);
       router.push("/login");
       router.refresh();
     } catch (err) {
@@ -104,6 +116,13 @@ export default function Navbar() {
   const displayRole = profile?.role || authData?.role || "user";
   const userInitials = getInitials(displayName);
 
+  const navLinkCls = (href) =>
+    `text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
+      pathname === href
+        ? "bg-emerald-50 text-emerald-700 font-bold"
+        : "text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70"
+    }`;
+
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -121,83 +140,24 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* Main Nav Links */}
+        {/* Main Nav Links — Desktop only */}
         <nav className="hidden lg:flex items-center gap-1">
-          <Link
-            href="/dashboard"
-            className={`text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
-              pathname === "/dashboard"
-                ? "bg-emerald-50 text-emerald-700 font-bold"
-                : "text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70"
-            }`}
-          >
-            Browse Needs
-          </Link>
+          <Link href="/dashboard" className={navLinkCls("/dashboard")}>Browse Needs</Link>
           {authData?.role !== "volunteer" && (
-            <Link
-              href="/needs/new"
-              className={`text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
-                pathname === "/needs/new"
-                  ? "bg-emerald-50 text-emerald-700 font-bold"
-                  : "text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70"
-              }`}
-            >
-              Post a Need
-            </Link>
+            <Link href="/needs/new" className={navLinkCls("/needs/new")}>Post a Need</Link>
           )}
           {authData?.role !== "affected" && (
-            <Link
-              href="/organizations"
-              className={`text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
-                pathname === "/organizations"
-                  ? "bg-emerald-50 text-emerald-700 font-bold"
-                  : "text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70"
-              }`}
-            >
-              Organizations
-            </Link>
+            <Link href="/organizations" className={navLinkCls("/organizations")}>Organizations</Link>
           )}
-          <Link
-            href="/impact"
-            className={`text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
-              pathname === "/impact"
-                ? "bg-emerald-50 text-emerald-700 font-bold"
-                : "text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70"
-            }`}
-          >
-            Impact
-          </Link>
-          <Link
-            href="/about"
-            className={`text-sm font-semibold px-3.5 py-2 rounded-lg transition-all ${
-              pathname === "/about"
-                ? "bg-emerald-50 text-emerald-700 font-bold"
-                : "text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/70"
-            }`}
-          >
-            About
-          </Link>
+          <Link href="/impact" className={navLinkCls("/impact")}>Impact</Link>
+          <Link href="/about" className={navLinkCls("/about")}>About</Link>
 
           {authData && authData.role === "admin" && (
             <div className="flex items-center gap-1 border-l border-slate-200 ml-1 pl-2">
-              <Link
-                href="/admin/reports"
-                className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-all ${
-                  pathname === "/admin/reports"
-                    ? "bg-amber-50 text-amber-700 font-bold"
-                    : "text-slate-700 hover:text-amber-700 hover:bg-amber-50/70"
-                }`}
-              >
+              <Link href="/admin/reports" className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-all ${pathname === "/admin/reports" ? "bg-amber-50 text-amber-700 font-bold" : "text-slate-700 hover:text-amber-700 hover:bg-amber-50/70"}`}>
                 Reports Queue
               </Link>
-              <Link
-                href="/admin/users"
-                className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-all ${
-                  pathname === "/admin/users"
-                    ? "bg-amber-50 text-amber-700 font-bold"
-                    : "text-slate-700 hover:text-amber-700 hover:bg-amber-50/70"
-                }`}
-              >
+              <Link href="/admin/users" className={`text-sm font-semibold px-3 py-1.5 rounded-lg transition-all ${pathname === "/admin/users" ? "bg-amber-50 text-amber-700 font-bold" : "text-slate-700 hover:text-amber-700 hover:bg-amber-50/70"}`}>
                 Manage Users
               </Link>
             </div>
@@ -205,7 +165,7 @@ export default function Navbar() {
         </nav>
 
         {/* Auth / Avatar Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {loading ? (
             <div className="w-9 h-9 rounded-full bg-slate-100 animate-pulse" />
           ) : authData && authData.user_id ? (
@@ -275,7 +235,6 @@ export default function Navbar() {
 
                   {/* Menu Items */}
                   <div className="p-2 space-y-1">
-                    {/* Direct link to user's own profile */}
                     <Link
                       href={`/users/${authData.user_id}`}
                       onClick={() => setDropdownOpen(false)}
@@ -352,8 +311,8 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            /* ─── Unauthenticated Actions ─── */
-            <>
+            /* ─── Unauthenticated Actions (Desktop) ─── */
+            <div className="hidden lg:flex items-center gap-2">
               <Link
                 href="/login"
                 className="text-sm font-semibold text-slate-700 hover:text-slate-950 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors"
@@ -361,66 +320,140 @@ export default function Navbar() {
                 Sign In
               </Link>
               <Link
-                href="/needs/new"
-                className="hidden sm:inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md hover:shadow-emerald-600/20 transition-all active:scale-95"
-              >
-                <PlusCircle size={15} />
-                <span>Request Help</span>
-              </Link>
-              <Link
                 href="/signup"
                 className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-sm transition-all"
               >
-                Join Volunteer
+                Register
               </Link>
-            </>
+            </div>
           )}
-        </div>
-      </div>
 
-      {/* Secondary Mobile Scrollable Nav */}
-      <div className="lg:hidden flex items-center justify-between px-4 py-2 border-t border-slate-100 overflow-x-auto text-xs bg-slate-50/80 gap-2">
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
-            Browse Needs
-          </Link>
-          {authData?.role !== "volunteer" && (
-            <Link href="/needs/new" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
-              Post Need
-            </Link>
-          )}
-          {authData?.role !== "affected" && (
-            <Link href="/organizations" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
-              Organizations
-            </Link>
-          )}
-          <Link href="/impact" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
-            Impact
-          </Link>
-          <Link href="/about" className="shrink-0 font-medium text-slate-700 hover:text-emerald-600 px-2 py-1 rounded bg-white border border-slate-200/80">
-            About
-          </Link>
-          {authData && authData.role === "admin" && (
-            <>
-              <Link href="/admin/reports" className="shrink-0 font-medium text-amber-700 hover:text-amber-800 px-2 py-1 rounded bg-amber-50 border border-amber-200">
-                Reports
-              </Link>
-              <Link href="/admin/users" className="shrink-0 font-medium text-amber-700 hover:text-amber-800 px-2 py-1 rounded bg-amber-50 border border-amber-200">
-                Users
-              </Link>
-            </>
-          )}
-        </div>
+          {/* ─── Hamburger Button (Mobile/Tablet) ─── */}
+          <div className="lg:hidden" ref={mobileMenuRef}>
+            <button
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              className="p-2 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+              aria-label="Toggle navigation menu"
+            >
+              {mobileMenuOpen ? <XIcon size={22} /> : <Menu size={22} />}
+            </button>
 
-        {authData && authData.user_id && (
-          <Link
-            href={`/users/${authData.user_id}`}
-            className="shrink-0 flex items-center gap-1 font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200"
-          >
-            <User size={12} />
-            <span>Profile</span>
-          </Link>
-        )}
+            {/* Mobile Dropdown Menu */}
+            {mobileMenuOpen && (
+              <div className="absolute top-16 left-0 right-0 bg-white border-b border-slate-200 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="max-w-7xl mx-auto px-4 py-4 space-y-1">
+
+                  {/* Nav links */}
+                  <Link
+                    href="/dashboard"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-colors ${pathname === "/dashboard" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+                  >
+                    <LayoutDashboard size={17} className="text-emerald-600" />
+                    Browse Needs
+                  </Link>
+
+                  {authData?.role !== "volunteer" && (
+                    <Link
+                      href="/needs/new"
+                      className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-colors ${pathname === "/needs/new" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+                    >
+                      <PlusCircle size={17} className="text-blue-600" />
+                      Post a Need
+                    </Link>
+                  )}
+
+                  {authData?.role !== "affected" && authData !== false && (
+                    <Link
+                      href="/organizations"
+                      className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-colors ${pathname === "/organizations" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+                    >
+                      <Building2 size={17} className="text-purple-600" />
+                      Organizations
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/impact"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-colors ${pathname === "/impact" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+                  >
+                    <Activity size={17} className="text-teal-600" />
+                    Impact
+                  </Link>
+
+                  <Link
+                    href="/about"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-colors ${pathname === "/about" ? "bg-emerald-50 text-emerald-700" : "text-slate-700 hover:bg-slate-50"}`}
+                  >
+                    <Info size={17} className="text-slate-500" />
+                    About
+                  </Link>
+
+                  {authData && authData.role === "admin" && (
+                    <>
+                      <div className="border-t border-slate-100 my-1 pt-1">
+                        <p className="px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Admin</p>
+                      </div>
+                      <Link
+                        href="/admin/reports"
+                        className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-amber-700 hover:bg-amber-50 transition-colors"
+                      >
+                        <AlertTriangle size={17} className="text-amber-600" />
+                        Reports Queue
+                      </Link>
+                      <Link
+                        href="/admin/users"
+                        className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-amber-700 hover:bg-amber-50 transition-colors"
+                      >
+                        <UsersIcon size={17} className="text-amber-600" />
+                        Manage Users
+                      </Link>
+                    </>
+                  )}
+
+                  {/* Auth actions in mobile menu */}
+                  <div className="border-t border-slate-100 pt-3 mt-2 space-y-2">
+                    {authData && authData.user_id ? (
+                      <>
+                        <Link
+                          href={`/users/${authData.user_id}`}
+                          className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          <User size={17} className="text-emerald-600" />
+                          View Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          disabled={loggingOut}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50"
+                        >
+                          <LogOut size={17} />
+                          {loggingOut ? "Signing out…" : "Log Out"}
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <Link
+                          href="/login"
+                          className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-900 bg-slate-100 hover:bg-slate-200 transition-colors"
+                        >
+                          <LogIn size={17} />
+                          Sign In
+                        </Link>
+                        <Link
+                          href="/signup"
+                          className="flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 transition-colors"
+                        >
+                          <UserPlus size={17} />
+                          Register
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </header>
   );
