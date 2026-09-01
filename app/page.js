@@ -145,7 +145,7 @@ export default function HomePage() {
 
             {/* Sub-Headline */}
             <p className="text-lg sm:text-xl text-slate-600 leading-relaxed font-normal max-w-2xl mx-auto">
-              ReliefLink is an open, hyper-local disaster coordination platform. Post urgent requests, claim relief missions, and mobilize volunteer organizations instantly.
+              ReliefLink is an open, hyper-local disaster coordination platform across Bangladesh. Post urgent requests, claim relief missions, and mobilize volunteer organizations instantly.
             </p>
 
             {/* Hero CTAs */}

@@ -11,7 +11,7 @@
 
 ---
 
-*Connecting crisis-affected communities with verified volunteers, humanitarian organizations, and transparent aid telemetry.*
+*Connecting crisis-affected communities across Bangladesh with verified volunteers, humanitarian organizations, and transparent aid telemetry.*
 
 </div>
 
@@ -19,7 +19,7 @@
 
 ## Overview
 
-**ReliefLink** is an open, community-powered disaster response and crisis relief platform. It bridges the gap between affected individuals broadcasting emergency needs and on-the-ground volunteers/organizations delivering aid.
+**ReliefLink** is an open, community-powered disaster response and crisis relief platform built for emergency coordination across Bangladesh. It bridges the gap between affected individuals broadcasting emergency needs and on-the-ground volunteers/organizations delivering aid.
 
 Every emergency request, volunteer dispatch, and completed delivery is logged into a transparent, verifiable impact audit trail with peer trust reviews.
 
