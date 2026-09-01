@@ -45,7 +45,7 @@ export async function createOrganization(req, res) {
 export async function getOrganizations(req, res) {
   try {
     const [orgs] = await db.query(
-      `SELECT o.org_id, o.org_name, o.description, u.name AS owner_name
+      `SELECT o.org_id, o.org_name, o.description, o.owner_user_id, u.name AS owner_name
        FROM organizations o
        JOIN users u ON o.owner_user_id = u.user_id
        ORDER BY o.created_at DESC`,
