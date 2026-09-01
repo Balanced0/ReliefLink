@@ -377,8 +377,9 @@ export default function PostNeedPage() {
 
             <button
               type="submit"
-              disabled={loading || areasLoading}
-              className="w-full bg-slate-950 hover:bg-slate-800 text-white rounded-xl py-4 font-bold text-sm shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98]"
+              disabled={loading || areasLoading || !user}
+              title={!user ? "You must be signed in to post a need" : undefined}
+              className="w-full bg-slate-950 hover:bg-slate-800 text-white rounded-xl py-4 font-bold text-sm shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-slate-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 active:scale-[0.98]"
             >
               {loading ? (
                 <><Loader2 size={16} className="animate-spin text-slate-400" /> Broadcasting Need…</>
@@ -386,6 +387,16 @@ export default function PostNeedPage() {
                 <><Send size={16} /> Broadcast Emergency Need</>
               )}
             </button>
+
+            {!authLoading && !user && (
+              <p className="text-center text-sm text-slate-500">
+                You need to{" "}
+                <Link href="/login" className="font-semibold text-emerald-600 hover:underline">
+                  sign in
+                </Link>{" "}
+                before you can broadcast a need.
+              </p>
+            )}
           </form>
         </div>
       </div>
