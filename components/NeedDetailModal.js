@@ -227,6 +227,9 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
     }
 
     if (needStatus === "fulfilled") {
+      const isPoster = user && user.user_id === need.posted_by;
+      const targetVolunteerId = claimedById || need.claimed_by_id;
+
       return (
         <div className="space-y-3">
           <div className="flex flex-col gap-2.5 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
@@ -234,23 +237,29 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
               <CheckCircle size={18} className="text-emerald-600 shrink-0" />
               <p className="text-sm text-emerald-800 font-medium">This need has been fulfilled. Thank you!</p>
             </div>
-            {user && user.user_id === need.posted_by && (claimedById || need.claimed_by_id) && (
+            {isPoster && targetVolunteerId && (
               <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between gap-2 flex-wrap">
                 <p className="text-xs text-emerald-800">
-                  Satisfied with the help from <strong className="font-semibold">{claimedByName || need.claimed_by_name || "the volunteer"}</strong>?
+                  {ratingSuccess ? (
+                    <span className="font-semibold text-emerald-900">✓ Your review for this volunteer has been recorded.</span>
+                  ) : (
+                    <span>Satisfied with the help from <strong className="font-semibold">{claimedByName || need.claimed_by_name || "the volunteer"}</strong>?</span>
+                  )}
                 </p>
-                <button
-                  onClick={() => setShowRateVolunteer((v) => !v)}
-                  className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-xs"
-                >
-                  <Star size={13} className="fill-amber-300 text-amber-300" />
-                  {showRateVolunteer ? "Hide Rating" : "Rate & Review Volunteer"}
-                </button>
+                {!ratingSuccess && (
+                  <button
+                    onClick={() => setShowRateVolunteer((v) => !v)}
+                    className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors shadow-xs"
+                  >
+                    <Star size={13} className="fill-amber-300 text-amber-300" />
+                    {showRateVolunteer ? "Hide Rating" : "Rate & Review Volunteer"}
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          {showRateVolunteer && (
+          {showRateVolunteer && !ratingSuccess && (
             <form onSubmit={handleRateVolunteer} className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
               <p className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
                 <Star size={13} className="text-amber-500 fill-amber-500" /> Rate Volunteer: {claimedByName || need.claimed_by_name}
