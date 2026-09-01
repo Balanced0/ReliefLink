@@ -83,6 +83,33 @@ export async function rateUser(req, res) {
       return res.status(400).json({ error: "You cannot rate yourself." });
     }
 
+    // 1. Verify the rater actually posted a need that this volunteer fulfilled
+    const [eligibleNeeds] = await db.query(
+      `SELECT n.need_id 
+       FROM needs n
+       JOIN claims c ON n.need_id = c.need_id
+       WHERE n.posted_by = ? AND c.volunteer_id = ? AND c.status = 'fulfilled'`,
+      [rated_by, rated_user_id]
+    );
+
+    if (eligibleNeeds.length === 0) {
+      return res.status(403).json({ 
+        error: "You can only rate a volunteer who has fulfilled a need you posted." 
+      });
+    }
+
+    // 2. Prevent multiple ratings: cannot submit more ratings than fulfilled needs with this volunteer
+    const [existingRatings] = await db.query(
+      "SELECT COUNT(*) as rating_count FROM rates WHERE rated_by = ? AND rated_user_id = ?",
+      [rated_by, rated_user_id]
+    );
+
+    if (existingRatings[0].rating_count >= eligibleNeeds.length) {
+      return res.status(400).json({ 
+        error: "You have already submitted a rating for this volunteer." 
+      });
+    }
+
     await db.query(
       "INSERT INTO rates (rated_by, rated_user_id, stars, comment) VALUES (?, ?, ?, ?)",
       [rated_by, rated_user_id, stars, comment || null]
