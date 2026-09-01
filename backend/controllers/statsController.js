@@ -27,9 +27,15 @@ export async function getImpactSummary(req, res) {
     // Volunteers see data filtered by their bookmarked areas.
     // Admins see platform-wide data.
     if (role === "volunteer") {
-      areaJoin = " JOIN bookmarks b ON n.area_id = b.area_id ";
-      areaCondition = " AND b.user_id = ? ";
-      areaParams = [user_id];
+      const [[{ bookmarkCount }]] = await db.query(
+        "SELECT COUNT(*) AS bookmarkCount FROM bookmarks WHERE user_id = ?",
+        [user_id]
+      );
+      if (bookmarkCount > 0) {
+        areaJoin = " JOIN bookmarks b ON n.area_id = b.area_id ";
+        areaCondition = " AND b.user_id = ? ";
+        areaParams = [user_id];
+      }
     }
 
     // 1. Total needs fulfilled
