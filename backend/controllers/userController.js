@@ -53,6 +53,15 @@ export async function getUserProfile(req, res) {
     user.ratings = ratings;
     user.average_rating = avgRatingResult[0].average_rating ? parseFloat(avgRatingResult[0].average_rating).toFixed(1) : null;
 
+    const [orgs] = await db.query(
+      `SELECT o.org_id, o.org_name
+       FROM joins j
+       JOIN organizations o ON j.org_id = o.org_id
+       WHERE j.user_id = ? AND j.status = 'approved'`,
+      [user_id]
+    );
+    user.organizations = orgs;
+
     res.json(user);
   } catch (err) {
     console.error(err);
