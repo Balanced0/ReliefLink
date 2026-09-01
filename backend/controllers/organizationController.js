@@ -21,6 +21,11 @@ export async function createOrganization(req, res) {
     );
 
     await db.query(
+      `INSERT INTO joins (user_id, org_id, status) VALUES (?, ?, 'approved')`,
+      [req.user.user_id, result.insertId],
+    );
+
+    await db.query(
       `UPDATE users SET account_type = 'organization_member' WHERE user_id = ?`,
       [req.user.user_id],
     );
