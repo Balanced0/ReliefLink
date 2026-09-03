@@ -3,17 +3,30 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShieldCheck, HeartHandshake, UserPlus, AlertCircle, Loader2, User, Users } from "lucide-react";
+import { ShieldCheck, HeartHandshake, UserPlus, AlertCircle, Loader2, User, Users, Eye, EyeOff, CheckCircle2, XCircle } from "lucide-react";
 import { apiPost } from "../../lib/api";
+
+const PASSWORD_RULES = [
+  { id: "length",   label: "At least 8 characters",              test: (p) => p.length >= 8 },
+  { id: "upper",    label: "At least 1 uppercase letter (A–Z)",   test: (p) => /[A-Z]/.test(p) },
+  { id: "number",   label: "At least 1 number (0–9)",             test: (p) => /[0-9]/.test(p) },
+  { id: "special",  label: "At least 1 special character (!@#$…)", test: (p) => /[^A-Za-z0-9]/.test(p) },
+];
+
+function validatePassword(password) {
+  return PASSWORD_RULES.every((r) => r.test(password));
+}
 
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState("affected");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,6 +34,12 @@ export default function SignupPage() {
 
     if (!name.trim() || !email.trim() || !password.trim() || !role) {
       setError("All fields are required.");
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      setPasswordTouched(true);
+      setError("Please satisfy all password requirements below.");
       return;
     }
 
@@ -103,16 +122,46 @@ export default function SignupPage() {
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5" htmlFor="password">
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 focus:bg-white transition-all text-sm"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              required
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/20 focus:border-slate-900/40 focus:bg-white transition-all text-sm pr-11"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setPasswordTouched(true); }}
+                onBlur={() => setPasswordTouched(true)}
+                disabled={loading}
+                required
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-0.5"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+
+            {/* Live password rule checklist */}
+            {passwordTouched && (
+              <ul className="mt-2.5 space-y-1.5 pl-0.5">
+                {PASSWORD_RULES.map((rule) => {
+                  const passed = rule.test(password);
+                  return (
+                    <li key={rule.id} className={`flex items-center gap-2 text-xs font-medium transition-colors ${passed ? "text-emerald-600" : "text-slate-400"}`}>
+                      {passed
+                        ? <CheckCircle2 size={13} className="shrink-0 text-emerald-500" />
+                        : <XCircle size={13} className="shrink-0 text-slate-300" />
+                      }
+                      {rule.label}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           <div>

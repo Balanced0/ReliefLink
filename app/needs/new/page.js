@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   Droplet, Pill, Home, LifeBuoy, Package, 
-  AlertTriangle, CheckCircle2, ArrowLeft, Loader2, Sparkles, Send
+  AlertTriangle, CheckCircle2, ArrowLeft, Loader2, Send, Ban
 } from "lucide-react";
 import { apiPost } from "../../../lib/api";
 
@@ -178,6 +178,33 @@ export default function PostNeedPage() {
               className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-5 py-3 rounded-xl transition-colors"
             >
               Browse Active Radar Needs
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!authLoading && user?.account_status === "suspended") {
+    return (
+      <div className="flex flex-col flex-1 bg-slate-50 mesh-bg min-h-screen px-4 py-16 items-center justify-center">
+        <div className="bg-white rounded-3xl border border-red-200 shadow-xl max-w-lg w-full p-8 text-center space-y-4">
+          <div className="w-14 h-14 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto">
+            <Ban size={28} />
+          </div>
+          <h1 className="text-xl font-bold text-slate-900">Account Suspended</h1>
+          <p className="text-sm text-slate-600 leading-relaxed">
+            Your account has been <span className="font-bold text-red-600">suspended</span> by an administrator. You cannot post new emergency needs at this time.
+          </p>
+          <p className="text-xs text-slate-500">
+            If you believe this is a mistake, please contact the site administrator for assistance.
+          </p>
+          <div className="pt-3">
+            <Link
+              href="/dashboard"
+              className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-5 py-3 rounded-xl transition-colors inline-block"
+            >
+              Return to Dashboard
             </Link>
           </div>
         </div>

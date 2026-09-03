@@ -90,6 +90,16 @@ export function logout(req, res) {
   res.json({ message: "Logged out." });
 }
 
-export function getMe(req, res) {
-  res.json(req.user);
+export async function getMe(req, res) {
+  try {
+    const [rows] = await db.query(
+      "SELECT user_id, name, email, role, account_status FROM users WHERE user_id = ?",
+      [req.user.user_id]
+    );
+    if (!rows[0]) return res.status(401).json({ error: "User not found." });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not load user." });
+  }
 }

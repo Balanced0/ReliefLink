@@ -367,6 +367,23 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
           );
         }
 
+        if (user.account_status === "suspended") {
+          return (
+            <div className="space-y-2">
+              <button
+                disabled
+                className="w-full flex items-center justify-center gap-2 bg-red-900/40 text-white/70 rounded-xl py-3 font-semibold text-sm cursor-not-allowed"
+              >
+                <HandHeart size={16} />
+                Claim This Need
+              </button>
+              <p className="text-center text-xs text-red-600 font-medium">
+                Your account is suspended. You cannot claim needs.
+              </p>
+            </div>
+          );
+        }
+
         return (
           <button
             onClick={handleClaim}
