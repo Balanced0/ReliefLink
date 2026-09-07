@@ -1,3 +1,8 @@
 {
-  "framework": "nextjs"
+  "services": {
+    "frontend": {
+      "root": ".",
+      "framework": "nextjs"
+    }
+  }
 }
