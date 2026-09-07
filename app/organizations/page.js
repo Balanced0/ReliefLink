@@ -28,7 +28,7 @@ export default function OrganizationsPage() {
     setLoadingOrgs(true);
     setFetchError("");
     try {
-      const res = await fetch("http://localhost:5000/api/organizations");
+      const res = await fetch("/api/organizations");
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setFetchError(data.error || "Could not load organizations.");
@@ -47,7 +47,7 @@ export default function OrganizationsPage() {
     fetchOrgs();
     async function checkAuth() {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
+        const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
         if (res.ok) {
@@ -70,7 +70,7 @@ export default function OrganizationsPage() {
     setCreateError("");
     setCreateSuccess("");
     try {
-      const res = await fetch("http://localhost:5000/api/organizations", {
+      const res = await fetch("/api/organizations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -104,7 +104,7 @@ export default function OrganizationsPage() {
     }));
     try {
       const res = await fetch(
-        `http://localhost:5000/api/organizations/${orgId}/join`,
+        `/api/organizations/${orgId}/join`,
         { method: "POST", credentials: "include" }
       );
       const data = await res.json().catch(() => ({}));
@@ -134,7 +134,7 @@ export default function OrganizationsPage() {
     }));
     try {
       const res = await fetch(
-        `http://localhost:5000/api/organizations/${orgId}/members?status=pending`,
+        `/api/organizations/${orgId}/members?status=pending`,
         { credentials: "include" }
       );
       const data = await res.json().catch(() => []);
@@ -176,7 +176,7 @@ export default function OrganizationsPage() {
     }));
     try {
       const res = await fetch(
-        `http://localhost:5000/api/organizations/${orgId}/members/${userId}`,
+        `/api/organizations/${orgId}/members/${userId}`,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -224,7 +224,7 @@ export default function OrganizationsPage() {
     }));
     try {
       const res = await fetch(
-        `http://localhost:5000/api/organizations/${orgId}/members`,
+        `/api/organizations/${orgId}/members`,
         { credentials: "include" }
       );
       const data = await res.json().catch(() => []);

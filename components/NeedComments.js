@@ -18,7 +18,7 @@ export default function NeedComments({ needId, postedBy, claimedById }) {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
+        const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
         setUser(res.ok ? await res.json().catch(() => null) : false);
@@ -33,7 +33,7 @@ export default function NeedComments({ needId, postedBy, claimedById }) {
     setError("");
     try {
       const res = await fetch(
-        `http://localhost:5000/api/needs/${needId}/comments`,
+        `/api/needs/${needId}/comments`,
         { credentials: "include" }
       );
       if (!res.ok) {
@@ -66,7 +66,7 @@ export default function NeedComments({ needId, postedBy, claimedById }) {
     setPostSuccess("");
     try {
       const res = await fetch(
-        `http://localhost:5000/api/needs/${needId}/comments`,
+        `/api/needs/${needId}/comments`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

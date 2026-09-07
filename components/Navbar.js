@@ -46,7 +46,7 @@ export default function Navbar() {
   // Fetch current user auth on mount & on route change
   const checkAuth = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/me", {
+      const res = await fetch("/api/auth/me", {
         credentials: "include",
       });
       if (res.ok) {
@@ -55,7 +55,7 @@ export default function Navbar() {
           setAuthData(me);
           // Fetch detailed profile for name, email, ratings
           try {
-            const userRes = await fetch(`http://localhost:5000/api/users/${me.user_id}`, {
+            const userRes = await fetch(`/api/users/${me.user_id}`, {
               credentials: "include",
             });
             if (userRes.ok) {
@@ -86,7 +86,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      await fetch("http://localhost:5000/api/auth/logout", {
+      await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });

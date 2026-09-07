@@ -253,7 +253,7 @@ export default function DashboardPage() {
       if (filterAreaId)   params.set("area_id",  filterAreaId);
 
       const q = params.toString() ? `?${params}` : "";
-      const res  = await fetch(`http://localhost:5000/api/needs${q}`, { credentials: "include" });
+      const res  = await fetch(`/api/needs${q}`, { credentials: "include" });
       const data = await res.json().catch(() => []);
       if (!res.ok) setError("Failed to load needs. Please try again.");
       else setNeeds(Array.isArray(data) ? data : []);
@@ -266,7 +266,7 @@ export default function DashboardPage() {
 
   async function fetchBookmarks() {
     try {
-      const res = await fetch("http://localhost:5000/api/bookmarks", { credentials: "include" });
+      const res = await fetch("/api/bookmarks", { credentials: "include" });
       if (res.ok) {
         const data = await res.json().catch(() => []);
         if (Array.isArray(data)) {
@@ -281,7 +281,7 @@ export default function DashboardPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", { credentials: "include" });
+        const res = await fetch("/api/auth/me", { credentials: "include" });
         if (res.ok) {
           const u = await res.json().catch(() => null);
           setUser(u);
@@ -300,7 +300,7 @@ export default function DashboardPage() {
   useEffect(() => { fetchNeeds(); }, [fetchNeeds]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/areas", { credentials: "include" })
+    fetch("/api/areas", { credentials: "include" })
       .then((r) => r.json().catch(() => []))
       .then((d) => { if (Array.isArray(d)) setAreas(d); })
       .catch(() => {});
@@ -311,7 +311,7 @@ export default function DashboardPage() {
     setBookmarkingAreaId(areaId);
     try {
       if (isBookmarked) {
-        const res = await fetch(`http://localhost:5000/api/bookmarks/${areaId}`, {
+        const res = await fetch(`/api/bookmarks/${areaId}`, {
           method: "DELETE",
           credentials: "include",
         });
@@ -319,7 +319,7 @@ export default function DashboardPage() {
           setBookmarkedAreaIds((prev) => prev.filter((id) => id !== areaId));
         }
       } else {
-        const res = await fetch("http://localhost:5000/api/bookmarks", {
+        const res = await fetch("/api/bookmarks", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

@@ -82,7 +82,7 @@ export default function HomePage() {
     // Attempt to load general stats if available
     async function loadStats() {
       try {
-        const res = await fetch("http://localhost:5000/api/stats/impact", {
+        const res = await fetch("/api/stats/impact", {
           credentials: "include",
         });
         if (res.ok) {
@@ -101,7 +101,7 @@ export default function HomePage() {
 
     async function loadLiveNeeds() {
       try {
-        const res = await fetch("http://localhost:5000/api/needs?status=open");
+        const res = await fetch("/api/needs?status=open");
         if (res.ok) {
           const data = await res.json().catch(() => []);
           setLiveNeeds(Array.isArray(data) ? data.slice(0, 3) : []);

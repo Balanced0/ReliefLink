@@ -22,7 +22,7 @@ export default function AdminUsersPage() {
   useEffect(() => {
     async function checkAuthAndLoad() {
       try {
-        const authRes = await fetch("http://localhost:5000/api/auth/me", {
+        const authRes = await fetch("/api/auth/me", {
           credentials: "include",
         });
 
@@ -55,7 +55,7 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/admin/users", {
+      const res = await fetch("/api/admin/users", {
         credentials: "include",
       });
 
@@ -85,7 +85,7 @@ export default function AdminUsersPage() {
     setRowError((prev) => ({ ...prev, [userId]: null }));
 
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/users/${userId}/status`, {
+      const res = await fetch(`/api/admin/users/${userId}/status`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

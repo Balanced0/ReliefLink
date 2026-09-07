@@ -67,7 +67,7 @@ export default function PostNeedPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
+        const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
         if (res.ok) {
@@ -87,7 +87,7 @@ export default function PostNeedPage() {
   useEffect(() => {
     async function loadAreas() {
       try {
-        const res = await fetch("http://localhost:5000/api/areas", {
+        const res = await fetch("/api/areas", {
           credentials: "include",
         });
         const data = await res.json().catch(() => []);

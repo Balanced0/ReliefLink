@@ -68,7 +68,7 @@ export default function UserProfilePage() {
     setProfileLoading(true);
     setProfileError("");
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${id}`);
+      const res = await fetch(`/api/users/${id}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         setProfileError(data.error || "Could not load profile.");
@@ -91,7 +91,7 @@ export default function UserProfilePage() {
   async function fetchUserNeeds(userId) {
     setNeedsLoading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/needs");
+      const res = await fetch("/api/needs");
       if (res.ok) {
         const allNeeds = await res.json().catch(() => []);
         const mine = Array.isArray(allNeeds) ? allNeeds.filter((n) => n.posted_by === Number(userId)) : [];
@@ -111,7 +111,7 @@ export default function UserProfilePage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
+        const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
         setMe(res.ok ? await res.json().catch(() => null) : false);

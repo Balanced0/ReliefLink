@@ -95,7 +95,7 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", { credentials: "include" });
+        const res = await fetch("/api/auth/me", { credentials: "include" });
         setUser(res.ok ? await res.json().catch(() => null) : false);
       } catch {
         setUser(false);
@@ -114,7 +114,7 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
   async function handleClaim() {
     setActionError(""); setActionSuccess(""); setActionLoading(true);
     try {
-      const res  = await fetch(`http://localhost:5000/api/needs/${need.need_id}/claim`, {
+      const res  = await fetch(`/api/needs/${need.need_id}/claim`, {
         method: "POST", credentials: "include",
       });
       const data = await res.json().catch(() => ({}));
@@ -137,7 +137,7 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
     setActionError(""); setActionSuccess(""); setActionLoading(true);
     const activeClaimId = claimId || need.claim_id;
     try {
-      const res  = await fetch(`http://localhost:5000/api/claims/${activeClaimId}/fulfill`, {
+      const res  = await fetch(`/api/claims/${activeClaimId}/fulfill`, {
         method: "PATCH", credentials: "include",
       });
       const data = await res.json().catch(() => ({}));
@@ -161,7 +161,7 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
     setReportErr("");
     setReportMsg("");
     try {
-      const res  = await fetch(`http://localhost:5000/api/reports/${need.need_id}`, {
+      const res  = await fetch(`/api/reports/${need.need_id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -193,7 +193,7 @@ export default function NeedDetailModal({ need, onClose, onActionSuccess }) {
     setRatingError("");
     setRatingSuccess("");
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${targetUserId}/rate`, {
+      const res = await fetch(`/api/users/${targetUserId}/rate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

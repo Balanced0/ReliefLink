@@ -57,7 +57,7 @@ export default function ImpactPage() {
       if (end) params.set("endDate", end);
       const qs = params.toString() ? `?${params.toString()}` : "";
       
-      const res = await fetch(`http://localhost:5000/api/stats/impact${qs}`, {
+      const res = await fetch(`/api/stats/impact${qs}`, {
         credentials: "include",
       });
 

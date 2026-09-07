@@ -18,7 +18,7 @@ export default function AdminReportsPage() {
   useEffect(() => {
     async function checkAuthAndLoad() {
       try {
-        const authRes = await fetch("http://localhost:5000/api/auth/me", {
+        const authRes = await fetch("/api/auth/me", {
           credentials: "include",
         });
 
@@ -50,7 +50,7 @@ export default function AdminReportsPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:5000/api/admin/reports", {
+      const res = await fetch("/api/admin/reports", {
         credentials: "include",
       });
 
@@ -79,7 +79,7 @@ export default function AdminReportsPage() {
     setActionError((prev) => ({ ...prev, [needId]: null }));
 
     try {
-      const res = await fetch(`http://localhost:5000/api/admin/needs/${needId}/moderate`, {
+      const res = await fetch(`/api/admin/needs/${needId}/moderate`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
