@@ -3,5 +3,8 @@ import { configAPI } from "../../config.js";
 
 export const db = mysql.createPool({
     uri: configAPI.dbUrl,
-    multipleStatements: true
+    multipleStatements: true,
+    ssl: {
+        rejectUnauthorized: false // Required for Aiven cloud MySQL
+    }
 });
