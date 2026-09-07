@@ -1,4 +1,5 @@
-process.loadEnvFile();
+// Load .env locally; on Render/Vercel env vars are injected automatically
+try { process.loadEnvFile(); } catch {}
 
 const dbUrl = process.env.DB_URL;
 
